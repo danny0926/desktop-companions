@@ -35,13 +35,13 @@ def _background_lines(config: Mapping[str, Any]) -> tuple[list[str], list[str]]:
 
 def build_system_prompt(
     config: Mapping[str, Any], memories: list[dict[str, Any]], *,
-    max_speech_chars: int | None = None,
+    max_speech_chars: int | None = None, proactive: bool = False,
 ) -> str:
     official_lines, community_lines = _background_lines(config)
     style = config.get("voice_style", {})
     examples = [
         {key: item[key] for key in ("situation", "speech_text_ja", "attitude", "intensity", "delivery")}
-        for item in style.get("original_examples", [])
+        for item in ([] if proactive else style.get("original_examples", []))
     ]
     recalled = [
         {"id": item["id"], "key": item["memory_key"], "text": item["body"],
@@ -60,6 +60,9 @@ def build_system_prompt(
         "背景に出る姉妹や上杉風太郎は作品内の人物。利用者を風太郎や恋人と同一視しない。"
         "原作後半や後日談の知識は作品の背景として扱い、今の創作場面や利用者との共有体験へ勝手に置き換えない。"
         "会話に必要な事実だけ自然に生かし、人物紹介や結末の説明を毎回始めない。出典ラベルは読み上げない。",
+        "人物背景は話し方や反応の参考で、毎回持ち出す話題の一覧ではない。好物や料理、恋愛だけから話題を選ばず、"
+        "相手が最近話したことや、その場の題材、自分の身近な関心から今伝えたいことを選ぶ。"
+        "親しい仲間の設定ではデートの約束や交際関係を勝手に作らない。",
         "【二乃から話しかける時】\n"
         "今ここにいる相手に直接話しかける。気になった題材から、誘い、自分の好みや感想、軽いからかい、"
         "本当に知りたい質問など、その時の言いたいことを一つ選ぶ。毎回質問にする必要はない。"

@@ -17,10 +17,37 @@ from desktop_pet.markdown_chat import image_references
 
 MAX_IMAGES = 4
 MAX_FILE_BYTES = 12_000_000
+MAX_CLIPBOARD_IMAGE_BYTES = 160_004_096
 MAX_SOURCE_PIXELS = 40_000_000
 MAX_EDGE = 1600
 THUMBNAIL_SIZE = (300, 180)
 IMAGE_LIMIT_HINT = "每次最多 4 張；PNG／JPEG／GIF，原檔每張 12 MB、4000 萬像素內，傳送時縮至 1600 px。僅載入你選擇或明確引用的本機圖片。"
+
+
+def _dib_as_bmp(payload: bytes) -> bytes:
+    """Wrap a bounded Windows DIB in a BMP file header for Pillow."""
+    if len(payload) < 40:
+        raise ValueError("剪貼簿點陣圖標頭無效；草稿已保留。")
+    header_size, width, height, planes, bpp, compression, _image_size = struct.unpack_from("<IiiHHII", payload)
+    if header_size not in {40, 52, 56, 108, 124} or len(payload) < header_size:
+        raise ValueError("剪貼簿點陣圖標頭不支援；草稿已保留。")
+    if not 1 <= width <= 40_000 or not 1 <= abs(height) <= 40_000 or planes != 1 or bpp not in {1, 4, 8, 16, 24, 32}:
+        raise ValueError("剪貼簿點陣圖尺寸無效；草稿已保留。")
+    if width * abs(height) > MAX_SOURCE_PIXELS:
+        raise ValueError("剪貼簿圖片超過 4000 萬像素；草稿已保留。")
+    if compression not in {0, 3, 6}:
+        raise ValueError("剪貼簿點陣圖壓縮格式不支援；草稿已保留。")
+    offset = header_size
+    if compression == 3 and header_size == 40:
+        offset += 12
+    elif compression == 6 and header_size == 40:
+        offset += 16
+    if bpp <= 8:
+        colors_used = struct.unpack_from("<I", payload, 32)[0]
+        offset += (colors_used or (1 << bpp)) * 4
+    if offset > len(payload):
+        raise ValueError("剪貼簿點陣圖色彩表不完整；草稿已保留。")
+    return b"BM" + struct.pack("<IHHI", 14 + len(payload), 0, 0, 14 + offset) + payload
 
 
 def _image_id(reference: str) -> str:
@@ -73,41 +100,51 @@ class AttachmentStore:
                 payload = stream.read(MAX_FILE_BYTES + 1)
             if len(payload) > MAX_FILE_BYTES:
                 raise ValueError("圖片超過 12 MB；草稿已保留。")
-            try:
-                from PIL import Image, ImageOps, UnidentifiedImageError
-            except ImportError:
-                # Bounded PNGs remain useful with Tk and stdlib alone. Other
-                # formats/large images need the optional, lazy Pillow decoder.
-                return self._import_png_without_pillow(payload)
-            try:
-                with Image.open(io.BytesIO(payload)) as original:
-                    if original.format not in {"PNG", "JPEG", "GIF", "BMP"}:
-                        raise ValueError("請選擇 PNG、JPEG、GIF 或 BMP 圖片；草稿已保留。")
-                    if original.width * original.height > MAX_SOURCE_PIXELS:
-                        raise ValueError("圖片超過 4000 萬像素；草稿已保留。")
-                    original.seek(0)
-                    # Copy before closing the decoder, drop EXIF/comments and
-                    # normalize orientation; animated formats use frame one.
-                    image = ImageOps.exif_transpose(original).convert("RGBA")
-                    image.thumbnail((MAX_EDGE, MAX_EDGE), Image.Resampling.LANCZOS)
-                    normalized = io.BytesIO()
-                    image.save(normalized, format="PNG", optimize=False)
-                    png = normalized.getvalue()
-                    if len(png) > 8_000_000:
-                        raise ValueError("正規化後圖片仍超過 8 MB；請縮小圖片，草稿已保留。")
-                    image_id = hashlib.sha256(png).hexdigest()
-                    attachment = ManualImage(png_bytes=png, image_id=image_id, width=image.width, height=image.height)
-                    thumb = image.copy()
-                    thumb.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
-                    thumbnail = io.BytesIO()
-                    thumb.save(thumbnail, format="PNG")
-            except (UnidentifiedImageError, OSError, Image.DecompressionBombError):
-                raise ValueError("圖片損壞或尺寸過大；請重新選擇，草稿已保留。") from None
-            self._write(self.root / f"{image_id}.png", png)
-            self._write(self.root / f"{image_id}.thumb.png", thumbnail.getvalue())
-            return attachment
+            return self.import_bytes(payload)
         except OSError:
             raise ValueError("無法讀取或保存圖片；請確認本機檔案與權限，草稿已保留。") from None
+
+    def import_bytes(self, payload: bytes, *, image_format: str | None = None) -> ManualImage:
+        if not isinstance(payload, bytes) or not payload:
+            raise ValueError("剪貼簿圖片資料無效；草稿已保留。")
+        if image_format not in {None, "png", "dib", "dibv5"}:
+            raise ValueError("剪貼簿圖片格式不支援；草稿已保留。")
+        is_dib = image_format in {"dib", "dibv5"}
+        if len(payload) > (MAX_CLIPBOARD_IMAGE_BYTES if is_dib else MAX_FILE_BYTES):
+            raise ValueError("圖片超過可匯入大小限制；草稿已保留。")
+        try:
+            from PIL import Image, ImageOps, UnidentifiedImageError
+        except ImportError:
+            if is_dib:
+                raise ValueError("匯入剪貼簿點陣圖需要 Pillow；草稿已保留。") from None
+            return self._import_png_without_pillow(payload)
+        try:
+            data = _dib_as_bmp(payload) if is_dib else payload
+            with Image.open(io.BytesIO(data)) as original:
+                accepted = {"PNG"} if image_format == "png" else {"PNG", "JPEG", "GIF", "BMP"}
+                if original.format not in accepted:
+                    raise ValueError("圖片格式不支援；草稿已保留。")
+                if original.width * original.height > MAX_SOURCE_PIXELS:
+                    raise ValueError("圖片超過 4000 萬像素；草稿已保留。")
+                original.seek(0)
+                image = ImageOps.exif_transpose(original).convert("RGBA")
+                image.thumbnail((MAX_EDGE, MAX_EDGE), Image.Resampling.LANCZOS)
+                normalized = io.BytesIO()
+                image.save(normalized, format="PNG", optimize=False)
+                png = normalized.getvalue()
+                if len(png) > 8_000_000:
+                    raise ValueError("正規化後圖片超過 8 MB；草稿已保留。")
+                image_id = hashlib.sha256(png).hexdigest()
+                attachment = ManualImage(png_bytes=png, image_id=image_id, width=image.width, height=image.height)
+                thumb = image.copy()
+                thumb.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
+                thumbnail = io.BytesIO()
+                thumb.save(thumbnail, format="PNG")
+        except (UnidentifiedImageError, OSError, Image.DecompressionBombError, struct.error):
+            raise ValueError("圖片損壞或尺寸過大；草稿已保留。") from None
+        self._write(self.root / f"{image_id}.png", png)
+        self._write(self.root / f"{image_id}.thumb.png", thumbnail.getvalue())
+        return attachment
 
     def _import_png_without_pillow(self, payload: bytes) -> ManualImage:
         if len(payload) < 33 or payload[:8] != b"\x89PNG\r\n\x1a\n":

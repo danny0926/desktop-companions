@@ -42,13 +42,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/start_nino_pet.ps1 -Ch
 
 聊天工具列提供「圖片／粗體／斜體／預覽」，可以在游標位置交錯圖片、文字與標點。輸入與日文／中文字幕以 CommonMark 顯示標題、強調、清單、引用、程式碼、連結及圖片；HTML 只顯示為文字。斜體按鈕使用 `_斜體_`，完整的 `*摸頭*` 仍是原有動作指令。`Enter` 傳送、`Shift+Enter` 換行。
 
-完整 Markdown 與圖片處理使用兩個可選套件，不載入語音模型，也不在 UI 匯入時初始化 Pillow：
+輸入框支援 `Ctrl+V`、`Shift+Insert` 與右鍵貼上：可貼純文字、剪貼簿圖片、檔案總管複製的圖片，以及常見文字／程式碼檔。文字檔會以檔名和程式碼區塊插入草稿；PDF（需 pypdf）與 DOCX 會抽取文字。加密／掃描 PDF 和其他未支援格式會顯示錯誤並保留草稿，不會自動傳送。
+
+Markdown、完整圖片處理與 PDF 文字抽取使用可選套件，不載入語音模型，也不在 UI 匯入時初始化 Pillow：
 
 ```powershell
 python -m pip install -r desktop_pet/requirements-chat.txt
 ```
 
-版本固定為 markdown-it-py 4.0.0、Pillow 11.1.0。未安裝時仍能開啟標準函式庫／Tk 的 `--no-voice` 介面，顯示 Markdown 原文；標準 8-bit、非交錯 PNG 可用基本載入方式。其他格式與縮圖使用明確載圖時才匯入的 Pillow。
+版本固定為 markdown-it-py 4.0.0、Pillow 11.1.0、pypdf 6.7.4。未安裝時仍能開啟標準函式庫／Tk 的 `--no-voice` 介面，顯示 Markdown 原文；標準 8-bit、非交錯 PNG 可用基本載入方式。其他圖片格式與縮圖使用明確載圖時才匯入的 Pillow；PDF 文字只在使用者明確貼上檔案時由 pypdf 抽取。
 
 按「圖片」選取本機 PNG、JPEG、GIF 或 BMP；也可直接輸入本機 Markdown 圖片路徑，有空格時使用角括號：
 
@@ -153,4 +155,5 @@ python tools/setup_voice.py --check
 
 - 角色會依滑鼠位置微微移動眼神，水平與垂直各最多 1 個邏輯像素；站立、坐姿及說話時都適用。拖曳按住或角色旋轉時暫停；不支援的閉眼與背面姿勢維持原樣。
 - 主動搭話可把畫面當作聊天線索，日文台詞會直接對你說話，不會旁白描述介面；每次回覆是完整短句，最多 36 個日文字元，並顯示中文字幕。全螢幕時自動靜音。
+- 主動續聊會參考近期實際聽過的台詞，以減少緊接著重複相近句子或話題。
 - 對話模型預設為 `gpt-6-luna`。已確認一次真實模型請求能產生完整短句和中文字幕；單一樣本不代表整體品質，畫面觸發時的對話自然度仍待觀察。

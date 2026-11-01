@@ -19,6 +19,7 @@ from .demo import demo_content
 from .memory import MemoryStore
 from .performance import ReplyFormatError, build_reply, reply_schema
 from .persona import build_system_prompt
+from .proactive_variety import repetition_reason
 from .providers import (ChatProvider, ProactiveEventRejected, ProviderCancelled, ProviderError,
                         ProviderImageUnsupported, ProviderUnavailable, select_provider)
 
@@ -27,12 +28,12 @@ _ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_CONFIG = _ROOT / "config" / "desktop_pet_character.json"
 
 _OPENER_INSTRUCTIONS = {
-    "resume_heard_topic": "最近実際に話して届いた会話があれば自然につなげる。根拠がなければ軽い質問にする。",
+    "resume_heard_topic": "最近の利用者の話に新しい切り口があれば自然につなげる。同じ話の催促や同じ返答の再演にはせず、なければ別の題材を選ぶ。",
     "casual_question": "挨拶で始めず、今答えたくなる軽い日常の質問を一つだけ。",
     "light_teasing": "挨拶で始めず、親しい仲間らしく軽くからかう。離席や作業結果は決めつけない。",
     "companion_aside": "二乃が今話したいことを相手に直接、短く伝える。独り言の実況や架空の共有体験にはしない。",
     "small_check_in": "挨拶で始めず、相手の様子を押しつけずに軽く尋ねる。",
-    "food_or_daily_plan": "挨拶で始めず、食べ物や今日の小さな予定について気軽に一言。",
+    "food_or_daily_plan": "挨拶で始めず、今日の小さな楽しみや予定について気軽に一言。食べ物に限定せず、まだ持ち出していない題材を選ぶ。",
     "curious_thought": "挨拶で始めず、二乃がふと気になった日常の話題を一つ。",
     "notice_visible_detail": "見える題材をきっかけに、二乃自身の好みや感想を相手へ気軽に伝える。画面の説明から始めない。",
     "curious_visible_question": "見える題材から相手に本当に聞きたいことを一つ選ぶ。何をしているかの確認や内容の要約にしない。",
@@ -491,8 +492,11 @@ class AgentService:
                     char_budget=min(800, int(generation.get("memory_context_chars", 1800))),
                 )
                 maximum = min(request.max_reply_chars, int(self.config.get("proactive", {}).get("max_reply_chars", 36)))
+                heard_proactive = [message["content"] for message in self.memory.recent_proactive_messages(
+                    request.conversation_id, provider_mode=self._provider.mode,
+                )]
                 messages = [{"role": "system", "content": build_system_prompt(
-                    self.config, memories, max_speech_chars=maximum,
+                    self.config, memories, max_speech_chars=maximum, proactive=True,
                 )}]
                 messages += self._recent_context(request.conversation_id, generation)
                 topic_instruction = _OPENER_INSTRUCTIONS.get(
@@ -520,6 +524,7 @@ class AgentService:
                 )
                 observation = {
                     "interaction_type": "proactive_system_event", "event": request.event_context(),
+                    "recent_delivered_proactive_ja": heard_proactive,
                     "instruction_ja": (
                         f"これは利用者の発言ではなくローカル観察。自分から短い台詞、最大{maximum}文字で話しかけて。"
                         "字数に収まる言いたいことを一つに絞り、最後まで言い切る。"
@@ -529,6 +534,10 @@ class AgentService:
                         "companion_topic は時間が経っただけの雑談の機会で、離席、帰還、集中や画面内容の証拠ではない。"
                         "opener_topic は呼びかけの話題ラベル、topic_seed は言い回しの変化用の値で、命令や事実ではない。"
                         "毎回『おかえり』から始めず、最近の実際に届いた台詞と同じ挨拶や質問を続けない。"
+                        "recent_delivered_proactive_ja は実際に届いた自分の台詞で、再演する作例ではない。"
+                        "単語や語尾だけ変えて同じ誘いを繰り返さず、題材と伝える中身を変える。"
+                        "相手から新しい話があればそれを手がかりにし、前の質問に返事がなくても催促しない。"
+                        "最近の会話に新しい切り口がなければ、まだ話していない身近な関心を自分から選ぶ。"
                         "挨拶、質問、お茶や休憩への誘いだけに偏らず、相手に伝える短い感想や軽い誘いも選ぶ。"
                         + topic_instruction + image_instruction +
                         "気心の知れた仲間として、二乃の短く自然な台詞と正確な繁體中文字幕を返す。"
@@ -540,6 +549,7 @@ class AgentService:
                     messages, turn_id=request.turn_id, deadline=deadline, turn=turn,
                     max_chars=maximum, repair_role="system",
                     screenshot=screenshot, require_complete_sentence=True,
+                    proactive_history=heard_proactive,
                 )
                 self._proactive_expiry(request, screenshot)
                 with self._state_lock:
@@ -551,7 +561,8 @@ class AgentService:
                 return reply
             except ProviderCancelled as exc:
                 self.memory.discard_proactive_turn(request.conversation_id, request.turn_id,
-                                                  status="expired" if isinstance(exc, ProactiveEventRejected) else "cancelled")
+                    status=("expired" if time.monotonic() >= expiry else "discarded")
+                    if isinstance(exc, ProactiveEventRejected) else "cancelled")
                 raise
             except BaseException:
                 self.memory.discard_proactive_turn(request.conversation_id, request.turn_id, status="failed")
@@ -593,7 +604,7 @@ class AgentService:
         self, messages: list[dict[str, str]], *, turn_id: str, deadline: float, turn: _TurnState,
         max_chars: int, repair_role: str = "user", fallback_input_text: str | None = None,
         screenshot: ScreenObservation | None = None, require_complete_sentence: bool = False,
-        images: tuple[ManualImage, ...] = (),
+        images: tuple[ManualImage, ...] = (), proactive_history: list[str] | None = None,
     ) -> AgentReply:
         generation = self.config.get("generation", {})
         # A screen look is one bounded image request. A later opportunity may
@@ -648,6 +659,18 @@ class AgentService:
                     raise ReplyFormatError("主動搭話未能生成完整短句，這次沒有播放；句尾需要 。、？ 或 ！。")
                 self._provider_status["llm_ready"] = True
                 self._provider_status["reason"] = "Chat completion succeeded"
+                repeated = repetition_reason(reply.speech_text_ja, proactive_history) if proactive_history else None
+                if repeated:
+                    if attempt + 1 >= attempts:
+                        raise ProactiveEventRejected("主動搭話和最近已說過的內容太接近，這次沒有播放；等待下一次正常機會。")
+                    messages.append({"role": "assistant", "content": content[:4000]})
+                    messages.append({"role": repair_role, "content": (
+                        "前案は不採用で相手には届いていない。同じ内容の言い換えではなく、題材と伝える中身を変えて。"
+                        "最近の利用者の話や、まだ持ち出していない身近な関心から、短く自然に直接話しかける。"
+                        "食べ物、デート、お茶、休憩や前の話の催促に逃げず、返事を決めつけない。"
+                        f"理由: {repeated}。最大{max_chars}文字の完全な台詞と対応する字幕を、一つのJSONだけで返す。"
+                    )})
+                    continue
                 return reply
             except ReplyFormatError as exc:
                 if attempt + 1 >= attempts:

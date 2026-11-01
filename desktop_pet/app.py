@@ -13,6 +13,9 @@ import time
 import tkinter as tk
 from tkinter import filedialog, ttk
 import traceback
+import codecs
+import zipfile
+import xml.etree.ElementTree as ET
 
 from .agent.actions import UserAction, format_user_action, parse_user_action
 from .attachments import AttachmentStore, MAX_IMAGES
@@ -31,6 +34,7 @@ from .shell.resources import resource_details, resource_issue, resource_status
 from .shell.sprites import EXPRESSION_ANIMATION, SpriteAtlas
 from .shell.win32 import (NativeShell, capture_png, clamp_position, cursor_position,
                            hwnd_of, monitor_layout, move_window, passive_window, window_rect, work_area)
+from .shell.clipboard import read_clipboard
 
 
 BG = "#FCFAFF"
@@ -39,6 +43,7 @@ MUTED = "#83778E"
 ACCENT = "#76529B"
 PALE = "#EEE6F6"
 CHROMA = "#FF00FE"
+MAX_PENDING_CLIPBOARD_PASTES = 8
 
 
 class PetApplication:
@@ -62,6 +67,11 @@ class PetApplication:
         self._attachments = None
         self._markdown_renderer = None
         self._composer_job = None
+        self._clipboard_paste_queue = deque()
+        self._clipboard_paste_active = None
+        self._clipboard_paste_serial = 0
+        self._clipboard_paste_threads = []
+        self._passive_paste_turn_id = None
         self.markdown_preview = None
         if self.state_path.is_file():
             try:
@@ -631,6 +641,9 @@ class PetApplication:
         self.input_box.grid(row=1, column=0, columnspan=4, sticky="ew")
         self.input_box.bind("<Return>", self._input_return)
         self.input_box.bind("<KeyPress>", self._input_activity, add="+")
+        self.input_box.bind("<<Paste>>", self._paste_clipboard)
+        self._bind_paste_shortcuts(self.input_box)
+        self.input_box.bind("<Button-3>", self._composer_context_menu)
         self.input_box.bind("<FocusIn>", lambda event: self._input_focus(True))
         self.input_box.bind("<FocusOut>", lambda event: self._input_focus(False))
         if self._draft_text:
@@ -810,6 +823,10 @@ class PetApplication:
 
     def send_input(self):
         if self.input_box:
+            if (getattr(self, "_composer_job", None) or getattr(self, "_clipboard_paste_active", None) or
+                    getattr(self, "_clipboard_paste_queue", ())):
+                self.status.set("貼上或附件仍在處理；完成後即可傳送，草稿已保留。")
+                return
             text = self.input_box.get("1.0", "end-1c")
             try:
                 if image_references(text):
@@ -949,6 +966,228 @@ class PetApplication:
             self._draft_text = self.input_box.get("1.0", "end-1c")
         return self._draft_text
 
+    def _composer_context_menu(self, event):
+        index = self.input_box.index(f"@{event.x},{event.y}")
+        try:
+            first, last = self.input_box.index("sel.first"), self.input_box.index("sel.last")
+            if not self.input_box.compare(first, "<=", index) or not self.input_box.compare(index, "<", last):
+                self.input_box.tag_remove("sel", "1.0", "end")
+                self.input_box.mark_set("insert", index)
+        except tk.TclError:
+            self.input_box.mark_set("insert", index)
+        menu = tk.Menu(self.input_box, tearoff=False)
+        for label, sequence in (("剪下", "<<Cut>>"), ("複製", "<<Copy>>"),
+                                ("貼上", "<<Paste>>"), ("全選", "<<SelectAll>>")):
+            menu.add_command(label=label, command=lambda seq=sequence: self.input_box.event_generate(seq))
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+        return "break"
+
+    def _bind_paste_shortcuts(self, widget):
+        for sequence in ("<Control-Key-v>", "<Control-Key-V>", "<Shift-Key-Insert>"):
+            widget.bind(sequence, self._paste_clipboard)
+
+    def _paste_clipboard(self, event=None):
+        """Take one explicit clipboard snapshot, then insert its best available form."""
+        if not hasattr(self, "_clipboard_paste_queue"):
+            self._clipboard_paste_queue, self._clipboard_paste_active = deque(), None
+        if not hasattr(self, "_clipboard_paste_serial"):
+            self._clipboard_paste_serial = 0
+        pending = len(self._clipboard_paste_queue) + int(self._clipboard_paste_active is not None)
+        if pending >= MAX_PENDING_CLIPBOARD_PASTES:
+            self.status.set("貼上佇列已滿（最多 8 項）；完成後請再貼上。草稿已保留。")
+            return "break"
+        box = self.input_box
+        self._clipboard_paste_serial = getattr(self, "_clipboard_paste_serial", 0) + 1
+        serial = self._clipboard_paste_serial
+        start_mark, end_mark = f"chat_paste_start_{serial}", f"chat_paste_end_{serial}"
+        try:
+            selection = (box.index("sel.first"), box.index("sel.last"))
+            selected_text = box.get(*selection)
+            has_selection = True
+        except tk.TclError:
+            selection = (box.index("insert"), box.index("insert"))
+            selected_text = ""
+            has_selection = False
+        box.mark_set(start_mark, selection[0])
+        box.mark_set(end_mark, selection[1])
+        box.mark_gravity(start_mark, "left" if has_selection else "right")
+        box.mark_gravity(end_mark, "right")
+        target = {"start": start_mark, "end": end_mark, "selection": selected_text,
+                  "has_selection": has_selection}
+        try:
+            content = read_clipboard(hwnd_of(self.input_box))
+        except Exception as exc:
+            self._clear_paste_marks(target)
+            self.status.set(f"無法讀取剪貼簿：{exc}")
+            return "break"
+        extra = self._meaningful_clipboard_text(content.text, content.file_paths) if (content.file_paths or content.image_bytes) else None
+        task = {"target": target, "text": content.text, "extra": extra,
+                "paths": content.file_paths, "image_bytes": content.image_bytes,
+                "image_format": content.image_format}
+        if not (content.file_paths or content.image_bytes or content.text is not None):
+            self._clear_paste_marks(target)
+            self.status.set("剪貼簿沒有可貼上的文字、圖片或檔案。")
+            return "break"
+        self._clipboard_paste_queue.append(task)
+        self._mark_passive_paste_turn()
+        self._start_next_clipboard_paste()
+        return "break"
+
+    def _mark_passive_paste_turn(self):
+        if self._turn_is_proactive and self.turn_id:
+            self._passive_paste_turn_id = self.turn_id
+
+    @staticmethod
+    def _meaningful_clipboard_text(text, paths=()):
+        if not text:
+            return ""
+        names = {str(path).replace("\\", "/").rsplit("/", 1)[-1].casefold() for path in paths}
+        meaningful = []
+        for line in text.splitlines():
+            value = line.strip()
+            if not value:
+                continue
+            if value.casefold() in names or value.startswith(("file://", "\\\\")):
+                continue
+            if re.fullmatch(r"[A-Za-z][A-Za-z0-9+.-]*://\S+", value):
+                continue
+            meaningful.append(line)
+        return "\n".join(meaningful).strip()
+
+    def _clear_paste_marks(self, target):
+        for name in (target["start"], target["end"]):
+            try: self.input_box.mark_unset(name)
+            except tk.TclError: pass
+
+    def _paste_target_is_unchanged(self, target):
+        if not target["has_selection"]:
+            return True
+        box = self.input_box
+        try:
+            return (box.index("sel.first") == box.index(target["start"]) and
+                    box.index("sel.last") == box.index(target["end"]) and
+                    box.get(target["start"], target["end"]) == target["selection"])
+        except tk.TclError:
+            return False
+
+    def _start_next_clipboard_paste(self):
+        if not hasattr(self, "_clipboard_paste_queue"):
+            self._clipboard_paste_queue, self._clipboard_paste_active = deque(), None
+        if self._clipboard_paste_active or not self._clipboard_paste_queue:
+            return
+        task = self._clipboard_paste_active = self._clipboard_paste_queue.popleft()
+        if task["text"] is not None and not task["paths"] and not task["image_bytes"]:
+            self._apply_clipboard_paste(task, task["text"], ())
+            self._finish_clipboard_paste(task)
+            return
+        self.status.set("正在整理剪貼簿內容…")
+        store = self._attachment_store()
+        events = self.events
+        def prepare():
+            try:
+                parts, images = [], []
+                if task["paths"]:
+                    paths = task["paths"]
+                    supported = {".txt", ".md", ".markdown", ".json", ".csv", ".py", ".js", ".ts", ".html", ".css", ".xml", ".yaml", ".yml", ".toml", ".sh", ".ps1", ".java", ".c", ".cpp", ".h", ".sql", ".pdf", ".docx"}
+                    for path in paths:
+                        suffix = Path(path).suffix.lower()
+                        if suffix in {".png", ".jpg", ".jpeg", ".gif", ".bmp"}:
+                            image = store.import_file(path); images.append(image)
+                            parts.append(f"![{Path(path).name}](attachment:{image.image_id})")
+                        elif suffix in supported:
+                            p = Path(path)
+                            if p.stat().st_size > 12_000_000: raise ValueError(f"{p.name} 超過 12 MB，未貼入草稿。")
+                            if suffix == ".pdf":
+                                try: from pypdf import PdfReader
+                                except ImportError: raise ValueError("讀取 PDF 需要安裝 pypdf；原草稿已保留。") from None
+                                reader = PdfReader(str(p), strict=True)
+                                if reader.is_encrypted: raise ValueError(f"{p.name} 有密碼保護，無法讀取文字。")
+                                if len(reader.pages) > 100: raise ValueError(f"{p.name} 超過 100 頁貼上上限。")
+                                text = "\n\n".join(page.extract_text() or "" for page in reader.pages)
+                                if not text.strip(): raise ValueError(f"{p.name} 沒有可抽取的文字；掃描頁面不會自動辨識。")
+                                language = "text"
+                            elif suffix == ".docx":
+                                with zipfile.ZipFile(p) as archive:
+                                    info = archive.getinfo("word/document.xml")
+                                    if (info.file_size > 20_000_000 or len(archive.infolist()) > 2000 or
+                                            sum(item.file_size for item in archive.infolist()) > 40_000_000):
+                                        raise ValueError(f"{p.name} 文件內容超過安全讀取上限。")
+                                    root = ET.fromstring(archive.read(info))
+                                ns = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+                                text = "\n".join("".join(node.text or "" for node in para.iter(ns + "t"))
+                                                for para in root.iter(ns + "p"))
+                                language = "text"
+                            else:
+                                raw = p.read_bytes()
+                                text = raw.decode("utf-8-sig") if raw.startswith(codecs.BOM_UTF8) else raw.decode("utf-16") if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)) else raw.decode("utf-8")
+                                language = suffix.lstrip(".")
+                            if len(text) > 32000: raise ValueError(f"{p.name} 超過 32,000 字元，未貼入草稿。")
+                            parts.append(f"{p.name}\n```{language}\n{text}\n```")
+                        else:
+                            raise ValueError(f"不支援貼上此檔案：{Path(path).name}。草稿已保留。")
+                    if task["extra"]:
+                        parts.append(task["extra"])
+                elif task["image_bytes"]:
+                    image = store.import_bytes(task["image_bytes"], image_format=task["image_format"])
+                    images.append(image)
+                    parts.append(f"![圖片](attachment:{image.image_id})")
+                    if task["extra"]: parts.append(task["extra"])
+                events.put({"type": "clipboard_paste_ready", "task": task,
+                            "source": "\n\n".join(parts), "images": tuple(images)})
+            except Exception as exc:
+                events.put({"type": "clipboard_paste_error", "task": task,
+                            "error": f"剪貼簿貼上失敗：{exc}"})
+        self._clipboard_paste_threads = [thread for thread in getattr(self, "_clipboard_paste_threads", ())
+                                         if thread.is_alive()]
+        worker = threading.Thread(target=prepare, name="pet-clipboard-paste", daemon=True)
+        self._clipboard_paste_threads.append(worker)
+        worker.start()
+
+    def _apply_clipboard_paste(self, task, source, images):
+        target, box = task["target"], self.input_box
+        if not self._paste_target_is_unchanged(target):
+            self.status.set("貼上時選取的文字已變更，內容未插入；目前草稿已保留。")
+            return False
+        try:
+            draft = self._chat_draft()
+            replacement = len(target["selection"]) if target["has_selection"] else 0
+            if target["has_selection"]:
+                start_index, end_index = box.index(target["start"]), box.index(target["end"])
+                remaining = box.get("1.0", start_index) + box.get(end_index, "end-1c")
+            else:
+                remaining = draft
+            if len(image_references(remaining)) + len(images) > MAX_IMAGES:
+                raise ValueError("每則最多附加 4 張圖片；草稿已保留。")
+            if len(draft) - replacement + len(source) > 32000:
+                raise ValueError("貼上後草稿會超過 32,000 字元，草稿未變更。")
+        except ValueError as exc:
+            self.status.set(str(exc))
+            return False
+        start = box.index(target["start"])
+        end = box.index(target["end"])
+        box.edit_separator()
+        autoseparators = box.cget("autoseparators")
+        box.configure(autoseparators=False)
+        try:
+            if target["has_selection"]: box.delete(start, end)
+            box.insert(start, source)
+        finally:
+            box.configure(autoseparators=autoseparators)
+        box.mark_set("insert", f"{start}+{len(source)}c")
+        box.edit_separator()
+        self._save()
+        self.status.set("內容已貼入草稿；可繼續編輯，再按預覽或傳送。")
+        return True
+
+    def _finish_clipboard_paste(self, task):
+        self._clear_paste_marks(task["target"])
+        if self._clipboard_paste_active is task:
+            self._clipboard_paste_active = None
+        self._start_next_clipboard_paste()
+
     def _menu_action(self, kind: str, description: str):
         self._send_action(UserAction(kind, description, "menu"))
 
@@ -1000,8 +1239,8 @@ class PetApplication:
         text = text.strip()
         if not text or self.closing:
             return False
-        if len(text) > 4000:
-            self.status.set("這段有點長，請縮短至 4000 字以內。")
+        if len(text) > 32000:
+            self.status.set("這段超過 32,000 字元上限，草稿已保留。")
             return False
         try:
             references = image_references(text)
@@ -1336,6 +1575,10 @@ class PetApplication:
         self._chat_input_focused = focused
 
     def _input_activity(self, event=None):
+        if event is not None and ((event.keysym.lower() == "v" and event.state & 0x0004) or
+                                  (event.keysym == "Insert" and event.state & 0x0001)):
+            return
+        self._passive_paste_turn_id = None
         self._last_typing_at = time.monotonic()
         self._manual_interaction("typing")
 
@@ -1357,6 +1600,7 @@ class PetApplication:
         self._log("touch_reply_cancelled", turn_id=old, reason=reason)
 
     def _manual_interaction(self, reason: str, *, interrupt_touch=True):
+        self._passive_paste_turn_id = None
         self._last_manual_at = time.monotonic()
         self._reply_action_until = 0
         if getattr(self, "_turn_is_replay", False) and reason in {"typing", "input_focus"}:
@@ -1399,9 +1643,14 @@ class PetApplication:
         issue = resource_issue(voice)
         waiting = bool(issue and issue["waiting"])
         own = delivery and self._turn_is_proactive
+        active_audio = (bool(self.player.item and self.player.item.get("turn_id") == self.turn_id) or
+                        any(item.get("turn_id") == self.turn_id for item in self._audio_queue))
+        passive_paste = (own and self.turn_id is not None and
+                         getattr(self, "_passive_paste_turn_id", None) == self.turn_id and
+                         (not self._turn_complete or self._synthesis_pending or active_audio))
         return BusyState(speaking=False if own else self.player.playing or bool(self._audio_queue),
                          typing=now - self._last_typing_at < 2,
-                         input_active=bool(self._chat_draft().strip()),
+                         input_active=bool(self._chat_draft().strip()) and not passive_paste,
                          manual_chat=now - self._last_manual_at < 3,
                          dragging=self._drag is not None and self._dragged,
                          interacting=self._touch_visual_active(now) and not
@@ -1552,21 +1801,41 @@ class PetApplication:
 
     def _handle_event(self, event: dict):
         kind = event["type"]
+        if kind in {"clipboard_paste_ready", "clipboard_paste_error"}:
+            task = event.get("task")
+            if task is not getattr(self, "_clipboard_paste_active", None):
+                return
+            if self.closing:
+                self._finish_clipboard_paste(task)
+                return
+            if kind == "clipboard_paste_error":
+                self.status.set(event["error"])
+            else:
+                self._apply_clipboard_paste(task, event["source"], event.get("images", ()))
+            self._finish_clipboard_paste(task)
+            return
         if kind in {"composer_ready", "composer_error"}:
             if event["job"] is not getattr(self, "_composer_job", None) or self.closing:
                 return
             self._composer_job = None
             if kind == "composer_error":
                 self.status.set(event["error"])
+                if event.get("mark"):
+                    self.input_box.mark_unset(event["mark"])
                 return
             mode, source = event["mode"], event["source"]
-            if mode == "insert":
+            if mode in {"insert", "paste_image", "paste_text"}:
+                if mode.startswith("paste_") and len(self._chat_draft()) + len(source) > 32000:
+                    self.input_box.mark_unset(event.get("mark"))
+                    self.status.set("貼上後草稿會超過 32,000 字元，草稿未變更。")
+                    return
+                mark = event.get("mark")
                 self.input_box.edit_separator()
-                self.input_box.insert(event["mark"], source)
-                self.input_box.mark_unset(event["mark"])
+                self.input_box.insert(mark, source)
+                self.input_box.mark_unset(mark)
                 self.input_box.edit_separator()
                 self._save()
-                self.status.set("圖片已加入草稿；可穿插文字、標點，再按預覽或傳送。")
+                self.status.set("內容已貼入草稿；可繼續編輯，再按預覽或傳送。")
             elif mode == "preview":
                 self._show_markdown_preview(source)
                 self.status.set("這是草稿預覽，尚未傳送。")

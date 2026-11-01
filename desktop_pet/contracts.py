@@ -50,7 +50,7 @@ class AgentRequest:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "turn_id", _required_text(self.turn_id, "turn_id", 160))
-        object.__setattr__(self, "input_text", _required_text(self.input_text, "input_text", 8000))
+        object.__setattr__(self, "input_text", _required_text(self.input_text, "input_text", 32000))
         object.__setattr__(self, "conversation_id", _required_text(self.conversation_id, "conversation_id", 160))
 
     def to_dict(self) -> dict[str, Any]:

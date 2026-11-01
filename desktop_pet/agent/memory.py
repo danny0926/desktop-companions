@@ -341,6 +341,12 @@ class MemoryStore:
                 "cancelled", "discarded", "expired", "failed",
             ):
                 return False  # A late delivery ACK cannot resurrect a terminal event.
+            if status == "interrupted" and not heard_text and row["delivery_status"] == "generated":
+                # The shell sends an empty ACK when it first displays a reply,
+                # before any WAV has played. Keep this pending payload so later
+                # playback ACKs can record the words actually heard. It remains
+                # absent from context, and cancel/close still redact it.
+                return True
             reply = json.loads(row["reply_json"])
             actual = heard_text if heard_text is not None else reply["speech_text_ja"]
             if status == "discarded" or not actual:
@@ -350,12 +356,40 @@ class MemoryStore:
                 if actual != reply["speech_text_ja"] or status == "interrupted":
                     reply["speech_text_ja"] = actual
                     reply["subtitle_zh"] = None
+                    reply["display_text_ja"] = None
                 stored_reply = json.dumps(reply, ensure_ascii=False)
             db.execute("""
                 UPDATE proactive_turns SET reply_json=?, heard_text=?, delivery_status=?, delivered_at=?
                 WHERE character_id=? AND conversation_id=? AND turn_id=?
             """, (stored_reply, actual, status, _now(), self.character_id, conversation_id, turn_id))
             return True
+
+    def recent_proactive_messages(
+        self, conversation_id: str, *, limit: int = 8, char_budget: int = 1200,
+        provider_mode: str | None = None,
+    ) -> list[dict[str, str]]:
+        """A separate bounded window of heard remarks, unaffected by manual chat volume."""
+        with self._connection() as db:
+            rows = db.execute("""
+                SELECT heard_text, reply_json FROM proactive_turns
+                WHERE character_id=? AND conversation_id=?
+                    AND delivery_status IN ('delivered', 'interrupted')
+                    AND reply_json IS NOT NULL AND heard_text IS NOT NULL AND heard_text!=''
+                ORDER BY delivered_at DESC, sequence DESC LIMIT ?
+            """, (self.character_id, conversation_id, min(20, max(1, int(limit))))).fetchall()
+        messages: list[dict[str, str]] = []
+        used = 0
+        for row in rows:
+            reply = json.loads(row["reply_json"])
+            if (provider_mode and provider_mode != "offline_demo"
+                    and reply.get("provider_mode") == "offline_demo"):
+                continue
+            text = row["heard_text"]
+            if used + len(text) > char_budget:
+                break
+            messages.append({"role": "assistant", "content": text})
+            used += len(text)
+        return list(reversed(messages))
 
     def get_proactive_turn(
         self, conversation_id: str, turn_id: str, *, event_id: str | None = None,
