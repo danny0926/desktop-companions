@@ -1,0 +1,18 @@
+Use case: identity-preserve
+Asset type: four-frame front-facing downward-walk sprite sheet for an existing low-resolution desktop pet.
+
+Input image 1 is the exact 96x112 style master. Input image 2 is the existing atlas; its first row first character is the idle identity/body reference, and later frames demonstrate the existing modest walking scale. Treat these as references to keep character identity, costume, proportions, sparse pixel clusters and outline.
+
+Create one new transparent PNG sheet, four evenly spaced cells in a strict 2 columns x 2 rows layout, equal cell sizes, no labels or grid lines. Each cell contains the same girl, entire body visible, feet aligned to the same ground baseline. True front-facing toward viewer/downscreen in every frame: two blue eyes visible, shoulders and skirt face viewer. This is a front walk toward the viewer, not a side-walk rotation and not a horizontally mirrored sprite.
+
+Character invariants: short salmon-pink bob cut, black/teal butterfly hair ribbons, tiny blue pixel eyes, small neutral closed mouth, black long-sleeve cardigan, white collared shirt, pleated light green skirt, white knee socks, black loafers. Match the references' approximately 2.7-head chibi proportions and small slim body, not a giant head. Keep head/hair silhouette almost identical between all four cells.
+
+Four distinct readable walk-cycle phases in reading order:
+TOP LEFT: contact A, her right leg (viewer-left) stepping toward viewer with its black shoe clearly lower/forward, her left leg behind and its shoe a little higher; her left arm swings forward, right arm back.
+TOP RIGHT: passing A, front-facing supporting right leg planted, her left knee and its foot are visibly lifted/passing beside the supporting leg; arms moving back through the middle, body slightly higher than contact.
+BOTTOM LEFT: contact B, her left leg (viewer-right) steps toward viewer with its black shoe clearly lower/forward; her right leg behind a little higher; opposite arm swing to top left.
+BOTTOM RIGHT: passing B, left supporting leg planted, right knee and foot lifted/passing on opposite side; arms reverse, body slightly higher.
+At least one sole planted at the ground line in every frame. Distinguishable leg silhouettes and alternating foot heights are essential; do not make four neutral standing poses. Subtle natural head/torso bob only, not jumping or floating. Legs remain beneath the skirt and properly attached. Small natural arm swing with visible hands, not arms stretched sideways.
+
+Style/medium: authentic restrained low-resolution 2D game pixel sprite, shaped for a native 96x112 logical frame, the character occupies about 54x104 pixels. Large view should simply be integer-upscaled square pixels. Flat sparse clusters, crisp dark stepped outline, same limited material palette as the references (about 31 colors), no smooth anti-aliased edges, no gradients, no soft shine, no painterly or glossy high-resolution anime look. Preserve material color placement and body style; do not redesign the character.
+Background: genuine transparent alpha, no cast shadows, no floor, no checkerboard baked into pixels, no text, no border, no watermark. Leave adequate transparent gutters between cells so all four full figures can be cropped independently.

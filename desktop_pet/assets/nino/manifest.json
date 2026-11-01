@@ -1,0 +1,481 @@
+{
+  "schema": "desktop-pet-sprite-atlas",
+  "schema_version": 1,
+  "id": "nino-pixel-v1",
+  "name": "二乃像素桌寵 v1",
+  "art_status": "AI-generated fan-art draft v1",
+  "image": "nino-pixel-v1.png",
+  "image_width": 1152,
+  "image_height": 1344,
+  "columns": 3,
+  "rows": 3,
+  "frame_width": 384,
+  "frame_height": 448,
+  "default_animation": "idle",
+  "fallback_animation": "idle",
+  "anchor": {
+    "x": 192,
+    "y": 432
+  },
+  "coordinate_system": "Pixels, top-left origin; rect is x,y,w,h; duration is milliseconds. All coordinates are integers. Image and file paths are relative to this manifest.",
+  "scale": {
+    "recommended": 0.5,
+    "render_width": 192,
+    "render_height": 224,
+    "filter": "nearest"
+  },
+  "frames": {
+    "idle": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/idle.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "待機",
+      "source_crop": [
+        99,
+        7,
+        417,
+        420
+      ],
+      "source_opaque_bounds_alpha128": [
+        106,
+        14,
+        410,
+        416
+      ],
+      "opaque_bounds_alpha128": [
+        40,
+        30,
+        344,
+        432
+      ]
+    },
+    "blink": {
+      "rect": {
+        "x": 384,
+        "y": 0,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/blink.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "眨眼",
+      "source_crop": [
+        468,
+        7,
+        784,
+        420
+      ],
+      "source_opaque_bounds_alpha128": [
+        475,
+        14,
+        777,
+        416
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        30,
+        343,
+        432
+      ]
+    },
+    "talk_small": {
+      "rect": {
+        "x": 768,
+        "y": 0,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/talk_small.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "說話・小嘴形",
+      "source_crop": [
+        836,
+        7,
+        1153,
+        420
+      ],
+      "source_opaque_bounds_alpha128": [
+        843,
+        14,
+        1146,
+        416
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        30,
+        344,
+        432
+      ]
+    },
+    "talk_open": {
+      "rect": {
+        "x": 0,
+        "y": 448,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/talk_open.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "說話・張嘴",
+      "source_crop": [
+        101,
+        420,
+        417,
+        834
+      ],
+      "source_opaque_bounds_alpha128": [
+        108,
+        426,
+        410,
+        829
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        29,
+        343,
+        432
+      ]
+    },
+    "happy": {
+      "rect": {
+        "x": 384,
+        "y": 448,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/happy.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "開心",
+      "source_crop": [
+        468,
+        420,
+        785,
+        834
+      ],
+      "source_opaque_bounds_alpha128": [
+        475,
+        426,
+        778,
+        829
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        29,
+        344,
+        432
+      ]
+    },
+    "annoyed": {
+      "rect": {
+        "x": 768,
+        "y": 448,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/annoyed.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "不悅",
+      "source_crop": [
+        836,
+        420,
+        1153,
+        834
+      ],
+      "source_opaque_bounds_alpha128": [
+        843,
+        426,
+        1146,
+        829
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        29,
+        344,
+        432
+      ]
+    },
+    "shy": {
+      "rect": {
+        "x": 0,
+        "y": 896,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/shy.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "害羞",
+      "source_crop": [
+        101,
+        834,
+        417,
+        1249
+      ],
+      "source_opaque_bounds_alpha128": [
+        108,
+        840,
+        410,
+        1242
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        30,
+        343,
+        432
+      ]
+    },
+    "surprised": {
+      "rect": {
+        "x": 384,
+        "y": 896,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/surprised.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "驚訝",
+      "source_crop": [
+        467,
+        834,
+        785,
+        1249
+      ],
+      "source_opaque_bounds_alpha128": [
+        474,
+        840,
+        778,
+        1242
+      ],
+      "opaque_bounds_alpha128": [
+        40,
+        30,
+        344,
+        432
+      ]
+    },
+    "sad": {
+      "rect": {
+        "x": 768,
+        "y": 896,
+        "w": 384,
+        "h": 448
+      },
+      "file": "frames/sad.png",
+      "anchor": {
+        "x": 192,
+        "y": 432
+      },
+      "label": "難過",
+      "source_crop": [
+        836,
+        834,
+        1153,
+        1249
+      ],
+      "source_opaque_bounds_alpha128": [
+        843,
+        840,
+        1146,
+        1242
+      ],
+      "opaque_bounds_alpha128": [
+        41,
+        30,
+        344,
+        432
+      ]
+    }
+  },
+  "animations": {
+    "idle": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "idle",
+          "duration_ms": 3600
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 130
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 1800
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "listening": {
+      "loop": true,
+      "fallback": "idle",
+      "visual_status": "reuses_idle_and_blink",
+      "frames": [
+        {
+          "frame": "idle",
+          "duration_ms": 2400
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 130
+        }
+      ]
+    },
+    "thinking": {
+      "loop": true,
+      "fallback": "idle",
+      "visual_status": "reuses_idle_and_blink",
+      "frames": [
+        {
+          "frame": "idle",
+          "duration_ms": 1400
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 160
+        }
+      ]
+    },
+    "speaking": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "talk_small",
+          "duration_ms": 100
+        },
+        {
+          "frame": "talk_open",
+          "duration_ms": 120
+        },
+        {
+          "frame": "talk_small",
+          "duration_ms": 100
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 90
+        }
+      ]
+    },
+    "happy": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "happy",
+          "duration_ms": 1350
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 250
+        }
+      ]
+    },
+    "annoyed": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "annoyed",
+          "duration_ms": 2200
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 110
+        },
+        {
+          "frame": "annoyed",
+          "duration_ms": 1200
+        }
+      ]
+    },
+    "shy": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "shy",
+          "duration_ms": 2300
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "surprised": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "surprised",
+          "duration_ms": 1500
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 300
+        }
+      ]
+    },
+    "sad": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "sad",
+          "duration_ms": 2500
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 160
+        }
+      ]
+    }
+  },
+  "capabilities": {
+    "expressions": [
+      "idle",
+      "blink",
+      "talk_small",
+      "talk_open",
+      "happy",
+      "annoyed",
+      "shy",
+      "surprised",
+      "sad"
+    ],
+    "walking": false,
+    "directions": [
+      "front"
+    ],
+    "lip_sync": "Two artistic speaking mouth frames; animation cadence only, not phoneme/viseme or amplitude analysis.",
+    "listening": "Idle art reused; no dedicated listening pose.",
+    "thinking": "Idle art reused; no dedicated thinking pose."
+  },
+  "source_metadata": "generation.json"
+}

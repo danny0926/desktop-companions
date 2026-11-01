@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "asset_id": "nino-pixel-v2",
+  "created_on": "2026-11-01",
+  "status": "Generated pixel fan-art pack; existing accepted style retained with dedicated expressions and stationary gestures",
+  "generation": {
+    "mode": "built-in image_gen__imagegen",
+    "transparent_background_requested": true,
+    "api_key_or_cli_used": false,
+    "intent": "New unofficial Nino fan art in a fixed low-resolution pixel style; no third-party sprite pixels copied",
+    "prompt_files": [
+      "prompts/master-prompt.txt",
+      "prompts/walk-prompt.txt",
+      "prompts/walk-refine-prompt.txt",
+      "prompts/expression-prompt.txt",
+      "prompts/walk-down-prompt.txt",
+      "prompts/walk-up-prompt.txt",
+      "prompts/headpat-prompt.txt",
+      "prompts/expressions-expanded-prompt.txt",
+      "prompts/wave-prompt.txt",
+      "prompts/stretch-prompt.txt",
+      "prompts/yawn-prompt.txt",
+      "prompts/adjust_ribbon-prompt.txt"
+    ],
+    "stages": [
+      {
+        "stage": "style master",
+        "source": "historical-workspace/master-generated-raw.png",
+        "source_dimensions": [
+          1122,
+          1402
+        ]
+      },
+      {
+        "stage": "initial four walk poses",
+        "source": "historical-workspace/walk-phase-draft-generated-raw.png",
+        "input": "style-master-6x.png",
+        "reason_for_refinement": "Opposite contact/passing leg phase was insufficiently distinct in bottom two frames"
+      },
+      {
+        "stage": "corrected four walk poses",
+        "source": "historical-workspace/walk-generated-raw.png",
+        "source_dimensions": [
+          1160,
+          1355
+        ],
+        "input": "initial four walk poses",
+        "used_in_atlas": true
+      },
+      {
+        "stage": "blink, talk, happy, annoyed, shy, sit",
+        "source": "historical-workspace/expressions-generated-raw.png",
+        "source_dimensions": [
+          1422,
+          1106
+        ],
+        "input": "style-master-6x.png",
+        "used_in_atlas": true
+      },
+      {
+        "stage": "four down walking poses",
+        "source": "historical-workspace/walk-down-generated-raw.png",
+        "source_dimensions": [
+          1199,
+          1312
+        ],
+        "input": [
+          "style-master-96x112.png",
+          "nino-pixel-v2.png"
+        ],
+        "view": "front",
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "four up walking poses",
+        "source": "historical-workspace/walk-up-generated-raw.png",
+        "source_dimensions": [
+          1199,
+          1312
+        ],
+        "input": [
+          "style-master-96x112.png",
+          "walk-down-generated-raw.png"
+        ],
+        "view": "back",
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "four headpat reaction poses",
+        "source": "historical-workspace/headpat-generated-raw.png",
+        "source_dimensions": [
+          1161,
+          1354
+        ],
+        "input": [
+          "style-master-6x.png",
+          "frames/idle.png"
+        ],
+        "mode": "built-in image_gen__imagegen",
+        "transparent_background_requested": true,
+        "api_key_or_cli_used": false,
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "expanded expressions",
+        "source": "historical-workspace/expressions-expanded-generated-raw.png",
+        "source_dimensions": [
+          1312,
+          1199
+        ],
+        "input": [
+          "historical-workspace/idle-reference-6x.png"
+        ],
+        "mode": "built-in image_gen__imagegen",
+        "transparent_background_requested": true,
+        "api_key_or_cli_used": false,
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "four wave gesture phases",
+        "source": "historical-workspace/wave-generated-raw.png",
+        "source_dimensions": [
+          1161,
+          1355
+        ],
+        "input": [
+          "historical-workspace/idle-reference-6x.png"
+        ],
+        "mode": "built-in image_gen__imagegen",
+        "transparent_background_requested": true,
+        "api_key_or_cli_used": false,
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "four stretch gesture phases",
+        "source": "historical-workspace/stretch-generated-raw.png",
+        "source_dimensions": [
+          1160,
+          1355
+        ],
+        "input": [
+          "historical-workspace/idle-reference-6x.png"
+        ],
+        "mode": "built-in image_gen__imagegen",
+        "transparent_background_requested": true,
+        "api_key_or_cli_used": false,
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "four yawn gesture phases",
+        "source": "historical-workspace/yawn-generated-raw.png",
+        "source_dimensions": [
+          1160,
+          1355
+        ],
+        "input": [
+          "historical-workspace/idle-reference-6x.png"
+        ],
+        "mode": "built-in image_gen__imagegen",
+        "transparent_background_requested": true,
+        "api_key_or_cli_used": false,
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      },
+      {
+        "stage": "four adjust_ribbon gesture phases",
+        "source": "historical-workspace/adjust_ribbon-generated-raw.png",
+        "source_dimensions": [
+          1161,
+          1355
+        ],
+        "input": [
+          "historical-workspace/idle-reference-6x.png"
+        ],
+        "mode": "built-in image_gen__imagegen",
+        "transparent_background_requested": true,
+        "api_key_or_cli_used": false,
+        "used_in_atlas": true,
+        "mirrored_or_geometrically_redrawn": false
+      }
+    ]
+  },
+  "design": {
+    "character": "Nino Nakano / 中野二乃",
+    "version": "short pink bob; black and teal butterfly ribbons; blue eyes; black cardigan, white shirt, green skirt, white socks, black loafers",
+    "logical_frame": [
+      96,
+      112
+    ],
+    "opaque_palette_colors": 31,
+    "palette_file": "historical-workspace/palette.json",
+    "proportions": "Approximately 2.7 heads tall, sparse small eyes and flat material color clusters",
+    "default_expression": "Neutral small closed mouth with open blue eyes; annoyed is a separate optional state",
+    "recommended_render_scale": 2,
+    "recommended_render_dimensions": [
+      192,
+      224
+    ],
+    "render_filter": "nearest-neighbor"
+  },
+  "processing": {
+    "scripts": [
+      "historical-workspace/prepare_master.py",
+      "historical-workspace/build_assets.py",
+      "historical-workspace/build_headpat.py",
+      "historical-workspace/build_expression_motion.py"
+    ],
+    "operations": [
+      "Crop observed generated character bounds at alpha >= 128",
+      "Nearest-neighbor resample to a fixed logical grid; no smoothing",
+      "Threshold alpha to 0 or 255 and map RGB to a fixed 31-color material palette with no dithering",
+      "Place every pose in a transparent 96x112 frame with grounded anchor (48,108)",
+      "Use the generated talk frame as the identical standing body; literal generated face-region crops provide blink/happy/annoyed/shy; a generated closed-mouth crop provides idle",
+      "Keep four independently generated right-walk poses with contact/passing and opposite leg/arm phases",
+      "Create four left-walk poses by exact horizontal pixel mirroring, not new generated drawings",
+      "Pack fifteen RGBA frames into a 480x336 atlas and export individual non-interlaced RGBA8 PNGs"
+    ],
+    "source_pixels_preserved": false,
+    "original_soft_alpha_preserved": false,
+    "creative_geometric_redrawing": false,
+    "svg_or_vector_character_substitution": false,
+    "per_frame_geometry": "manifest.json frames.*.processing",
+    "encoding": "PNG 8-bit RGBA, color type 6, interlace 0; palette is only a color restriction, not indexed PNG encoding",
+    "vertical_walk_extension": {
+      "mode": "built-in image_gen__imagegen",
+      "api_key_or_cli_used": false,
+      "new_frames": [
+        "walk_down_1",
+        "walk_down_2",
+        "walk_down_3",
+        "walk_down_4",
+        "walk_up_1",
+        "walk_up_2",
+        "walk_up_3",
+        "walk_up_4"
+      ],
+      "operations": [
+        "Crop each observed generated pose at alpha >=128",
+        "Nearest-neighbor resample to 104px contact / 105px passing opaque height",
+        "Apply unchanged original 31-color palette without dithering and binary alpha",
+        "Place soles at y=108 in 96x112 logical frames",
+        "Append down and up poses in new atlas rows four and five"
+      ],
+      "creative_geometric_redrawing": false,
+      "independent_generated_pose_count": 8,
+      "atlas_dimensions": [
+        480,
+        560
+      ],
+      "atlas_grid": [
+        5,
+        5
+      ],
+      "original_fifteen_png_files_byte_identical": true,
+      "original_atlas_top_three_rows_pixel_identical": true,
+      "preview_browser_executed": false
+    },
+    "headpat_extension": {
+      "mode": "built-in image_gen__imagegen",
+      "api_key_or_cli_used": false,
+      "new_frames": [
+        "headpat_1",
+        "headpat_2",
+        "headpat_3",
+        "headpat_4"
+      ],
+      "operations": [
+        "Crop four independently generated poses at alpha>=128",
+        "Nearest-neighbor scale each generated character to 104px opaque height",
+        "Map to unchanged 31-color palette without dithering; binary alpha",
+        "Keep generated upper-body pixels in [0,0,96,58], preserve exact idle lower-body pixels in [0,58,96,112]",
+        "Append four poses at row six, first four cells, preserving old atlas top five rows"
+      ],
+      "creative_geometric_redrawing": false,
+      "independent_generated_pose_count": 4,
+      "atlas_dimensions": [
+        480,
+        672
+      ],
+      "atlas_grid": [
+        5,
+        6
+      ],
+      "original_twenty_three_png_files_byte_identical": true,
+      "original_atlas_top_five_rows_pixel_identical": true,
+      "preview_browser_executed": false
+    },
+    "expression_motion_extension": {
+      "new_expressions": [
+        "surprised",
+        "sad",
+        "sleepy",
+        "laughing",
+        "smug",
+        "worried",
+        "irritated",
+        "curious"
+      ],
+      "new_actions": [
+        "wave",
+        "stretch",
+        "yawn",
+        "adjust_ribbon"
+      ],
+      "new_frame_count": 24,
+      "atlas_dimensions": [
+        480,
+        1232
+      ],
+      "atlas_grid": [
+        5,
+        11
+      ],
+      "operations": [
+        "Crop 8 generated expression faces and 16 independently generated gesture poses",
+        "Nearest-neighbor resample and restrict to unchanged 31-color palette with binary alpha",
+        "Register soles at (48,108), retain canonical idle body outside expression face crops",
+        "Retain exact canonical idle legs at y>=80 underneath generated gesture upper bodies",
+        "Append at row seven, preserving the full original six rows and all old PNG bytes"
+      ],
+      "creative_geometric_redrawing": false,
+      "old_frame_png_bytes_preserved": true,
+      "old_atlas_pixels_preserved": true,
+      "desktop_or_browser_preview_executed": false
+    }
+  },
+  "bounded_source_review": {
+    "outcome": "No complete hand-authored Nino chibi walk sheet with verifiable reuse/adaptation terms was found in the short source check. No external sprite was downloaded or adapted.",
+    "sources": [
+      {
+        "url": "https://www.reddit.com/r/NinoNakano/comments/16ob9su/nakano_nino_kof_sprite_pixel_art/",
+        "role": "Creator's KOF sprite post, opened and reviewed",
+        "finding": "Author describes long/short hair KOF-style sprites and credits reference artists; no complete chibi walking atlas or adaptation grant was established."
+      },
+      {
+        "url": "https://www.newgrounds.com/art/view/rickyrado/nino-nakano",
+        "role": "Creator page with explicit attribution/noncommercial/sharealike terms",
+        "finding": "Single illustration, not the required low-resolution walking sprite sheet; no pixels reused."
+      },
+      {
+        "url": "https://www.tbs.co.jp/anime/5hanayome/2nd/character/chara02.html",
+        "role": "Official short-haired character identity reference",
+        "finding": "Identity/costume reference only; no official artwork pixels copied."
+      }
+    ]
+  },
+  "additional_references": [
+    {
+      "role": "User's gallery style cue only",
+      "path": "Private local reference omitted; no reference pixels copied.",
+      "reuse": "No gallery sprite pixels reused"
+    },
+    {
+      "role": "Existing v1 inspected to identify unwanted glossy eyes and detailed gradient appearance",
+      "path": "../nino/nino-pixel-v1.png",
+      "reuse": "No v1 pixels reused"
+    },
+    {
+      "role": "Grounded anchor and duration-based animation methodology",
+      "path": "historical-workspace/shells.json",
+      "reuse": "Method only; no Shimeji artwork reused"
+    }
+  ],
+  "limitations": [
+    "The artwork is AI-generated and technically normalized, not commissioned hand-pixelled art; style acceptance remains the user's decision.",
+    "Four rightward 3/4 walk poses are generated; leftward walking is a mirror and is not four additional original drawings.",
+    "Minor hair/skirt silhouette variation remains between walk poses, and the side view is a three-quarter view.",
+    "Speaking alternates one open mouth and one closed mouth; it is not phoneme or amplitude lip sync.",
+    "The 64x80 technical draft lost eye readability, so the selected export uses 96x112 logical pixels.",
+    "No desktop-app integration, GPU task, TTS playback or browser launch was performed by this asset task.",
+    "Eight new expressions have dedicated generated face crops; four stationary gestures each have four generated upper-body poses with canonical planted legs. This is generated and technically normalized fan art, not hand-pixelled author artwork."
+  ],
+  "rights": {
+    "kind": "Unofficial generated fan art of an existing fictional character",
+    "character_owner_note": "Nino Nakano and The Quintessential Quintuplets remain the property of their respective rights holders. This metadata makes no claim of official authorization.",
+    "external_sprite_asset_reuse": false
+  },
+  "bounded_expression_action_source_review": {
+    "reviewed_on": "2026-11-01",
+    "candidate_count": 7,
+    "outcome": "Keep coherent existing pixel design; no matching usable Nino multi-action pixel Shimeji pack verified in bounded search. Nino Codex-pet archive returned HTTP500; public poster differs in style. Other sources are single illustrations, 3D/model expression reference, game scenes or action-timing source.",
+    "external_sprite_pixels_reused": false
+  },
+  "export_note": "Sanitized for independent repository: original screenshots, browser captures, generated raw intermediates and machine paths are excluded. Historical generation descriptions are provenance, not a new validation claim."
+}

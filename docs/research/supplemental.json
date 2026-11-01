@@ -1,0 +1,116 @@
+{
+  "schema": "desktop-pet-survey-supplement-v1",
+  "as_of": "2026-11-01",
+  "evidence_status": "Design recommendations and source-linked candidate notes supplied by coordinator; no candidates installed or locally verified.",
+  "candidate_comparison": [
+    {
+      "name": "Open-LLM-VTuber",
+      "role": "recommended_first_mvp_host",
+      "canonical_url": "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber",
+      "fit": "Coordinator recommendation: start with Windows desktop-pet interaction and a Japanese Nino TTS MVP. A Python text-to-WAV adapter appears close to the existing local CLI boundary.",
+      "status": "recommended_for_evaluation_not_installed_or_verified",
+      "integration_note": "Connect generated Japanese spoken text to existing local TTS; keep subtitles/captions for Chinese explanation separate from spoken text. Do not claim native Irodori support without an adapter."
+    },
+    {
+      "name": "AIRI",
+      "role": "longer_term_2d_3d_and_lip_sync_option",
+      "canonical_url": "https://github.com/moeru-ai/airi",
+      "fit": "Coordinator recommendation for a fuller 2D/3D and mouth-motion path after the first MVP.",
+      "status": "recommended_for_later_evaluation_not_installed_or_verified"
+    },
+    {
+      "name": "N.E.K.O",
+      "role": "companion_and_persistent_memory_reference_or_alternative_host",
+      "canonical_url": "https://github.com/Project-N-E-K-O/N.E.K.O",
+      "official_docs": [
+        "https://project-neko.online/architecture/",
+        "https://project-neko.online/frontend/",
+        "https://project-neko.online/architecture/tts-pipeline"
+      ],
+      "repo_snapshot": "Coordinator reports approximately 3.1k GitHub stars as a page estimate on 2026-11-01, not an API-verified count.",
+      "license": "Apache-2.0 per coordinator-provided repo evidence.",
+      "fit": "Python 3.11/FastAPI services with an Electron host; docs describe Main, Memory, and Agent services, multi-window frontend options including Live2D/VRM/MMD/PNGTuber, and a TTS worker queue with WebSocket audio and interruption queue handling.",
+      "integration_note": "The documented TTS worker interface includes request/response queues, API key and voice ID, and 48 kHz mono PCM16 with speech IDs. GPT-SoVITS/vLLM-Omni providers are cited; Irodori is not listed. A custom provider/adapter would be required. More services mean higher integration cost than a speech-first prototype.",
+      "status": "reference_or_alternative_not_installed_or_locally_verified"
+    },
+    {
+      "name": "Mate-Engine",
+      "role": "3d_vrm_desktop_pet_option",
+      "canonical_url": "https://github.com/shinyflvre/Mate-Engine",
+      "license_url": "https://github.com/shinyflvre/Mate-Engine/blob/main/LICENSE.md",
+      "repo_snapshot": "Coordinator reports approximately 3.8k GitHub stars as a page estimate on 2026-11-01, not an API-verified count.",
+      "fit": "Unity Windows VRM desktop pet features are described as window/taskbar sitting, dragging, idle behavior, and eye/head tracking. README comparison indicates AI Chat, while AI Voices is absent.",
+      "integration_note": "TTS and character-agent behavior still need implementation. License file is described as mixed MateEnginePro v2.1/AGPL terms and separate asset terms; do not summarize it as permissive MIT.",
+      "status": "consider_if_3d_vrm_is_a_priority_not_installed_or_locally_verified"
+    },
+    {
+      "name": "VPet",
+      "role": "2d_sprite_pet_interaction_reference",
+      "fit": "Useful as a 2D sprite pet/interaction reference; not a complete Japanese voice agent by itself.",
+      "status": "reference_only"
+    },
+    {
+      "name": "BongoCat",
+      "role": "event_driven_or_live2d_reference",
+      "fit": "Useful as an event/Live2D interaction reference; not a complete voice agent by itself.",
+      "status": "reference_only"
+    }
+  ],
+  "recommended_design": {
+    "status": "design_recommendation_not_implemented_or_verified",
+    "first_host": "Evaluate Open-LLM-VTuber as the first Windows desktop-pet host, with a Python adapter from Japanese text to local Irodori WAV generation.",
+    "later_options": "Consider AIRI for a more complete 2D/3D and lip-sync experience; consider N.E.K.O for proactive companionship and persistent memory; consider Mate-Engine if a 3D VRM pet becomes the priority.",
+    "streaming_framing": "For MVP, split a complete Japanese reply into short sentences, generate the next while playing the previous. This sentence-level pipeline can improve perceived responsiveness but does not establish native Irodori audio streaming. Do not call a whole-WAV HTTP wrapper true model streaming.",
+    "resource_framing": "On the known 4 GB GPU/16 GB RAM machine, prioritize local TTS and a light avatar. The LLM may run in a lab/server or through another provider. Do not assume the LLM, ASR, TTS, and avatar all fit together in local GPU/RAM budgets. Run inference through one resident worker with a controlled queue; frontend sentence pipelining must not launch parallel Irodori model instances on 4 GB VRAM.",
+    "watermark_framing": "Retain the existing Irodori watermark processing contract in the normal output path and include its measured CPU latency in response planning; do not silently remove it.",
+    "language_framing": "Nino spoken text is Japanese. Chinese subtitles may explain the content; captions should not be spoken aloud.",
+    "stop_cancel_framing": "Player stop can immediately clear queued playback and suppress late audio by request_id. True inference cancellation requires runtime cooperation and is a separate capability; do not conflate the two.",
+    "visual_asset_framing": "No usable Nino-specific visual asset is evidenced in the workspace. Live2D is not a settled requirement; a two-mouth-state PNG prototype can validate basic speech animation while assets are sourced."
+  },
+  "stages": [
+    {
+      "id": "P0",
+      "name": "Typed dialogue MVP",
+      "scope": "Agent produces Japanese spoken text plus attitude/intensity/delivery; local TTS; transparent desktop avatar with simple mouth motion and expression. Use a single resident inference worker with a bounded queue; validate a two-mouth PNG prototype if no suitable character asset is available.",
+      "acceptance": "Type a turn, receive Japanese speech, play it through a queue, and display an avatar response. Report first-playable-audio separately from full-file synthesis and cold start."
+    },
+    {
+      "id": "P1",
+      "name": "Voice input and continuity",
+      "scope": "Microphone, VAD/ASR, stop/cancel behavior, short-term context, persistent memory. Separate immediate playback stop and stale request suppression from runtime-cooperative inference cancellation; add Japanese date/time/number/name reading normalization.",
+      "acceptance": "Voice turn is detected, current speech can be cancelled, stale queued audio is dropped, and approved memory can be retrieved after restart. Demonstrate playback queue clear and stale request_id suppression independently of runtime generation cancellation; verify Japanese date/time/number/person-name reading examples."
+    },
+    {
+      "id": "P2",
+      "name": "Richer desktop interaction",
+      "scope": "Head pats, dragging, time-based events, proactive dialogue, optional screen context, fuller animation.",
+      "acceptance": "Each optional interaction has an explicit opt-in and observable behavior; animation and speech remain responsive together."
+    }
+  ],
+  "integration_gaps": [
+    "Nino-specific visual assets, expressions, and motion are not evidenced in the current workspace.",
+    "Windows transparent topmost window, click-through, dragging, tray controls, and desktop input integration.",
+    "Japanese character dialogue policy, role definition, short-term context, and persistent memory; source provenance for official versus community character settings.",
+    "Resident local TTS process, short-sentence pipeline, caching, cancellation, and playback queue.",
+    "Audio-driven mouth motion and emotion-linked expression animation.",
+    "Microphone VAD/ASR, echo handling, and barge-in cancellation.",
+    "Windows startup, packaging, and measured resource coexistence with avatar and other providers.",
+    "Single resident inference worker and bounded request queue; sentence pipelining must reuse the worker rather than start parallel Irodori model instances on 4 GB VRAM.",
+    "Separate immediate playback stop/queue clearing and stale request_id suppression from cooperative cancellation of active model inference.",
+    "Japanese text normalization for date, time, number, and person-name readings; pronunciation has been a user-reported issue and needs explicit test examples during implementation.",
+    "Nino-specific usable visual asset is not evidenced; choose Live2D later or prototype two PNG mouth states first."
+  ],
+  "source_notes": [
+    "N.E.K.O facts and approximate stars are coordinator-provided research notes, linked to its canonical repository and official documentation; not independently tested in this worker task.",
+    "Mate-Engine facts and approximate stars are coordinator-provided research notes, linked to its canonical repository and license file; not independently tested in this worker task.",
+    "Open-LLM-VTuber, AIRI, VPet, and BongoCat choices are design recommendations/roles supplied by coordinator, not local readiness claims."
+  ],
+  "related_workspace_evidence": [
+    "readiness.json",
+    "runtime/irodori_lowmem.py",
+    "runtime/irodori_lowmem_story.py",
+    "outputs/nino-story-local-v1/06_long_confession.json",
+    "outputs/nino-story-local-v1/08_after_rain.json"
+  ],
+  "_archive_note": "Historical design/source survey exported from the original workspace. Recommendations, local readiness, hardware observations and line references describe that earlier stage, not the current app or a fresh verification. Browser captures, screen images, model/data outputs and full articles are intentionally excluded. See README.md for current architecture."
+}

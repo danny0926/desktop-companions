@@ -1,0 +1,599 @@
+{
+  "schema_version": 1,
+  "title": "二乃 Windows 桌寵：AI companion 與語音基建選型",
+  "researched_at": "2026-11-01",
+  "stats_observed_at": "2026-11-01T05:48:32Z",
+  "scope": "僅公開 primary README/docs/release/code 與 api.github.com metadata；未安裝、未啟動程式、未訓練、未推論、未改TTS runtime/模型、未接外部帳號。N.E.K.O 由主 agent 另行調查，此檔不重複。",
+  "evidence_limits": [
+    "stars/forks/updated_at/pushed_at/lastrelease 為觀測時點的 API 值，不是永久數字；updated_at 也可能只是星標等metadata活動，維護頻度更應看 pushed_at/release。",
+    "每個repo的支援狀態依本輪直接讀到的README/docs/code；未在這台Windows機器實際安裝執行，未知/官方宣稱/推論均明確註記。",
+    "未取得/未假設已有二乃Live2D、VRM或sprite rig；框架與美術資產是不同待辦。",
+    "TTS batch熱生成接近音長的既有證據不等於常駐、首包、連續排隊、可取消或與LLM/動畫並行已達標。",
+    "GitHub API 後續出現未登入額度403，因此未對其他候選捏造完整API統計；已取得的主要5個候選資料照實保存。"
+  ],
+  "top_two": [
+    {
+      "repo": "Open-LLM-VTuber/Open-LLM-VTuber",
+      "recommendation": "最快驗證二乃完整一回合的第一原型",
+      "reason": "真桌寵模式已列出，Python TTS adapter的text→WAV檔契約清楚，分句播音/打斷/表情與基本角色Agent已串好。",
+      "blockers": [
+        "Irodori目前batch CLI尚無常駐服務與取消。",
+        "現有TTS呼叫只傳text，動態caption要補metadata橋接。",
+        "長期記憶/RAG仍需自己做；目前WAV整段封裝限制首包。"
+      ]
+    },
+    {
+      "repo": "moeru-ai/airi",
+      "recommendation": "長期桌面companion主幹候選",
+      "reason": "Windows正式安裝包、Live2D/VRM、可取消分句語音、wLipSync母音與按角色隔離的持久fact memory均有程式證據。",
+      "blockers": [
+        "monorepo與多host路徑複雜，需固定一條桌面路線。",
+        "Irodori仍要常駐API/provider與caption橋接。",
+        "fact memory已有基礎，但完整角色知識/來源優先序/RAG與本機可靠性未證明。"
+      ]
+    }
+  ],
+  "repositories": [
+    {
+      "canonical_url": "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber",
+      "full_name": "Open-LLM-VTuber/Open-LLM-VTuber",
+      "observed_at": "2026-11-01T05:48:32.153934+00:00",
+      "stats": {
+        "stargazers_count": 14503,
+        "forks_count": 1746,
+        "updated_at": "2026-11-01T05:15:35Z",
+        "pushed_at": "2026-05-15T07:18:04Z",
+        "archived": false,
+        "default_branch": "main"
+      },
+      "code_license": "NOASSERTION",
+      "latest_release": {
+        "tag_name": "v1.2.1",
+        "published_at": "2025-08-26T08:47:08Z",
+        "html_url": "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/releases/tag/v1.2.1",
+        "error": null
+      },
+      "api_source": "https://api.github.com/repos/Open-LLM-VTuber/Open-LLM-VTuber",
+      "classification": "AI companion + desktop client; 最快二乃語音原型候選",
+      "recommendation_priority": 1,
+      "platform": {
+        "stack": "Python async backend；獨立 Open-LLM-VTuber-Web 使用 Electron/React/TypeScript",
+        "windows": "README 明確支援 Windows/macOS/Linux；frontend README 有 build:win。需同時配置 backend 與桌面 client，不是只裝 Python 套件就有桌寵。",
+        "desktop_pet": "README 明列透明背景、置頂、滑鼠穿透與拖曳。瀏覽器版只算網頁角色。",
+        "multi_monitor": "未取得足以證明跨螢幕、混合 DPI、拔插後位置恢復可靠的直接證據；待 Windows 實測。",
+        "visuals": [
+          "Live2D 已確認",
+          "VRM PR 不代表目前 main/release 已支援；此次不列為可用承諾"
+        ],
+        "rig_requirement": "二乃 Live2D model3.json/moc3、textures、expression/motion 資產仍需另備，不能由單張圖片直接得到完整模型。"
+      },
+      "voice": {
+        "asr": "sherpa-onnx、faster-whisper、whisper.cpp 等可選；Ollama、LM Studio、llama.cpp/OpenAI-compatible LLM 在 README 明列。",
+        "vad": "hands-free 語音與可打斷管線已有；VAD/收音門檻須依實際麥克風環境調整。",
+        "tts": "TTSInterface.generate_audio(text, file_name_no_ext) → 音檔路徑；async_generate_audio 預設用 asyncio.to_thread。既有 GPT-SoVITS adapter 是取完整 response.content 落檔，不能當作原生 PCM 首包串流。",
+        "text_segmentation_and_queue": "TTSTaskManager 為多段建立 async tasks，可並行生成但依序傳給前端；main 的 prepare_audio_payload 讀完整音檔轉 WAV/base64，因此是分句早播，不是句內音訊邊生成邊播。",
+        "interrupt": "README 與 single_conversation.py 有打斷/cancel；清掉 UI/async task 不保證已進行中的同步 HTTP/CUDA synthesis 立刻停止。Irodori 端仍須 queue/generation_id/cancel 或丟棄過期結果。",
+        "echo": "README 宣稱不戴耳機可打斷且不聽到自己；本次未本機驗證，不能直接保證我們喇叭/麥克風組合有效。",
+        "lip_sync": "stream_audio.py 每 20ms 算 RMS、以本句最大值正規化後送 volumes；屬音量開嘴，未證明音素/viseme 對齊。",
+        "emotion": "Live2dModel 從標記抽取 emotionMap 對應 expression index；SentenceOutput 同時有 display_text/tts_text/actions。動作/表情仍依實際二乃 rig 提供的項目綁定。"
+      },
+      "agent_memory": {
+        "existing": "BasicMemoryAgent 支援 system/persona、聊天紀錄載入、工具呼叫與打斷後以實際聽到的回覆修正記錄。",
+        "missing": "README 明說長期記憶暫移除。不能把 chat history persistence 當成跨會話事實檢索、角色設定知識庫或有出處的 RAG。二乃官方核心設定、萌娘補充、台詞範例與使用者記憶仍需另外設計。"
+      },
+      "irodori_adapter": {
+        "native_support": false,
+        "current_irodori_status": "本機目前只有 batch CLI；不能直接把 URL 指向 CLI，也不能以既有 GPT-SoVITS 支援推論 Irodori 已支援。",
+        "minimal_changes": [
+          "新增 tts/irodori_tts.py：繼承 TTSInterface，呼叫未來本機常駐服務，將回傳音訊寫入唯一 WAV 路徑並回傳；初期可固定 caption 做接通。",
+          "在 tts/tts_factory.py 註冊；在 config_manager/tts.py 加 Pydantic 設定；更新 conf.default.yaml 與 conf.ZH.default.yaml。",
+          "若需每句態度/力度控制，擴充 agent/output_types.py 的 SentenceOutput 或增加專用 delivery metadata，並經 conversations/tts_manager.py 傳至 adapter；現有 _generate_audio 只傳 text，actions 不會自動變成 TTS caption。",
+          "Irodori 服務序列化 GPU 請求（建議 concurrency=1），加入 turn_id/segment_id、timeout、取消與過期結果丟棄。需要句內 PCM 串流時還要改 tts_manager 與 frontend 音訊傳輸，超出只加 adapter。"
+        ],
+        "actual_repo_contract": "字串 text → 本機音檔路徑；caption 不是既有介面欄位。",
+        "proposed_service_contract": "尚未實作：POST /synthesize {text_ja, caption, turn_id, segment_id} → audio/wav；先完整分句 WAV，之後再評估 WS PCM + cancel。",
+        "source_urls": [
+          "https://docs.llmvtuber.com/en/docs/development-guide/backend/tts/",
+          "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/tts/tts_interface.py",
+          "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/tts/tts_factory.py",
+          "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/conversations/tts_manager.py",
+          "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/agent/output_types.py"
+        ]
+      },
+      "license_details": {
+        "code": "LICENSE 本文為 MIT，例外是 Live2D sample models；GitHub API 回 NOASSERTION 是偵測結果，不應誤寫成沒有授權。",
+        "assets_sdk": "LICENSE-Live2D.md 依不同樣本角色有各自條款；MIT 不涵蓋 Live2D SDK、二乃形象/聲音/角色資產。此次只研究實際可再利用限制，未新增核准流程。",
+        "source_urls": [
+          "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/LICENSE",
+          "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/LICENSE-Live2D.md"
+        ]
+      },
+      "strengths": [
+        "已有桌寵殼、語音輸入、分句播音、打斷與表情的完整主線。",
+        "Python adapter 與本機 Irodori 相接的改動邊界清楚。"
+      ],
+      "gaps": [
+        "需自行補二乃角色 Agent 的結構化輸出與長期記憶。",
+        "完整音檔/每句傳輸限制首包；目前 release 2025-08、main push 2026-05，活動頻度低於 AIRI。",
+        "GPU 同時多句 TTS 與 LLM/ASR 必須主動限流；未在此機驗證。"
+      ],
+      "fit": "優先用它做『輸入文字→日文台詞/態度→本機二乃聲音→可打斷播放+表情』的縱向原型。達成後再評估長期主體，而不是現在同時建全套 Agent 與桌面系統。",
+      "source_urls": [
+        "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/README.md",
+        "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber-Web",
+        "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/agent/agents/basic_memory_agent.py",
+        "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/utils/stream_audio.py",
+        "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber/blob/main/src/open_llm_vtuber/live2d_model.py"
+      ]
+    },
+    {
+      "canonical_url": "https://github.com/moeru-ai/airi",
+      "full_name": "moeru-ai/airi",
+      "observed_at": "2026-11-01T05:48:32.226210+00:00",
+      "stats": {
+        "stargazers_count": 50971,
+        "forks_count": 5134,
+        "updated_at": "2026-11-01T05:22:17Z",
+        "pushed_at": "2026-11-01T01:12:53Z",
+        "archived": false,
+        "default_branch": "main"
+      },
+      "code_license": "MIT",
+      "latest_release": {
+        "tag_name": "v0.14.1",
+        "published_at": "2026-10-30T16:03:36Z",
+        "html_url": "https://github.com/moeru-ai/airi/releases/tag/v0.14.1",
+        "error": null
+      },
+      "api_source": "https://api.github.com/repos/moeru-ai/airi",
+      "classification": "完整 AI companion/VTuber + 原生桌面主體；長期主幹候選",
+      "recommendation_priority": 2,
+      "platform": {
+        "stack": "Vue/TypeScript monorepo；Stage Web、Electron Stage Tamagotchi。current main 另有 Godot/Kirie host，與 Electron 是不同路徑，不能混稱同一成熟度。",
+        "windows": "README 直接提供 AIRI-0.14.1-windows-x64-setup.exe；不是只有網頁 demo。",
+        "desktop_pet": "Electron main window 使用 transparentWindowConfig、setWindowAlwaysOnTop 與 mouse-ignore 邏輯；透明、置頂、拖曳有程式證據。",
+        "multi_monitor": "main 有 screen.getDisplayMatching/置中與顯示器邊界邏輯，但混合 DPI、跨螢幕、拔插的完整行為未本機驗證。",
+        "visuals": [
+          "Live2D",
+          "VRM；另有其他 renderer，非本次選型必要範圍"
+        ],
+        "rig_requirement": "需要可用二乃 Live2D 或 VRM；五母音嘴型與情緒表情需要模型對應參數/blendshapes。"
+      },
+      "voice": {
+        "asr": "provider registry 含 local sherpaw transcription、browser speech、雲端等；README 確認音訊輸入/談話偵測。Ollama 與 LM Studio 有獨立 provider 實作。",
+        "vad": "客戶端 speaking detection 已列完成；具體 echo 與麥克風體驗仍需選定 desktop/backend 後驗證。",
+        "tts": "OpenAI-compatible TTS provider、多家雲端與 local Kokoro 等；不是所有 TTS 都保證相同串流能力。",
+        "text_segmentation_and_queue": "pipelines-audio 的 chunkTtsInput/createTtsSegmentStream 將 LLM token 串流按標點/長度/flush 分段；createSpeechPipeline 接收 tts(request, AbortSignal) 與 playback hooks，支援 queue/interrupt/replace。",
+        "interrupt": "有 AbortController 與 playback interrupt events；自訂服務必須真的處理取消或丟棄失效 generation，否則停止播放不等於 GPU 合成立即停。",
+        "echo": "本輪沒有確認可直接保證喇叭免回音的完整 AEC 實作；列為待驗證。",
+        "lip_sync": "model-driver-lipsync 以 wLipSync 從音訊估計 AEIOU/原始 AEIOUS 權重並按音量平滑；Live2D 可取單一 mouth-open，VRM 可映五母音。這是音訊推估，並非 Irodori 原生 phoneme timestamp。",
+        "emotion": "有角色卡與 renderer/特殊 token 管線；二乃態度→expression/motion→caption 的一致映射仍是專案實作，不能只靠預設角色 prompt。"
+      },
+      "agent_memory": {
+        "existing": "current main 的 stores/memory.ts 已實作 IndexedDB 持久事實條目、角色卡隔離、一般/角色記憶、index/read/write/forget 與跨視窗更新；不是只有聊天紀錄。",
+        "limits": "README 仍將 Memory Alaya 標 WIP。現有 fact memory 不等於已成熟、有來源優先序的二乃設定/RAG；本機可靠性、摘要/提取品質與錯誤記憶處理未驗證。官方核心設定/補充百科/原作口吻樣例仍應分來源維護。"
+      },
+      "irodori_adapter": {
+        "native_support": false,
+        "current_irodori_status": "目前本機 batch CLI 需要常駐服務層；AIRI 不會原生執行我們的 CLI。",
+        "minimal_changes": [
+          "最小接通可先把 Irodori 封裝成 OpenAI-compatible TTS：base URL 指本機 /v1/，POST /audio/speech 接 model/input/voice，回可解碼音訊 bytes。若 UI 依 listModels 選型，提供 GET /v1/models 並用含 tts 的 model id（例如 irodori-nino-tts）；current provider 會篩掉 id 不含 tts 的項目。",
+          "完整角色表達建議新增 provider-inference 的 Irodori provider 或在 speech pipeline 的 tts(request, signal) bridge 改接本機服務，保留 turn/segment/sequence。",
+          "現有 TtsRequest 有 text/special/sequence/turnId，但沒有 typed caption/attitude/intensity；需在 Agent 解析與 TextSegment/TtsRequest 或受控 special metadata 之間新增 delivery 資料，再由 adapter 生成 caption。只填 base URL 不會自動保留情緒。",
+          "OpenAI-compatible HTTP wrapper 可先回每句完整 WAV；若要句內 PCM 串流，還須確認該 bridge 的解碼/播放與服務輸出格式，不能因 pipeline 支援 token stream 就宣稱 TTS 也真串流。",
+          "需設定 localhost CORS/origin、timeout、取消、序列化 GPU queue 與過期音訊丟棄。"
+        ],
+        "actual_repo_contract": "createSpeechPipeline<TAudio> 接 tts(TtsRequest, AbortSignal) → Promise<TAudio|null>；已具擴充 hook，Irodori 尚未接入。",
+        "source_urls": [
+          "https://github.com/moeru-ai/airi/blob/main/packages/provider-inference/src/providers/cloud/openai-audio/index.ts",
+          "https://github.com/moeru-ai/airi/blob/main/packages/pipelines-audio/src/speech-pipeline.ts",
+          "https://github.com/moeru-ai/airi/blob/main/packages/pipelines-audio/src/types.ts",
+          "https://github.com/moeru-ai/airi/blob/main/packages/pipelines-audio/src/processors/tts-chunker.ts"
+        ]
+      },
+      "license_details": {
+        "code": "MIT。",
+        "assets_sdk": "程式 MIT 不涵蓋 Live2D Cubism SDK、內附/外來角色模型與二乃資產。Godot/Kirie/CEF host 的依賴條款也需按選定分支/產品列清，不能一概視為 MIT。",
+        "source_urls": [
+          "https://github.com/moeru-ai/airi/blob/main/LICENSE"
+        ]
+      },
+      "strengths": [
+        "有 Windows 安裝包、完整視覺/語音/角色供應商選擇，活躍且被廣泛使用。",
+        "可借用可取消的分句排程、母音嘴型與角色隔離 fact memory，長期擴充空間大。"
+      ],
+      "gaps": [
+        "monorepo 與多 host 路徑複雜，整合成本高於單一 Python adapter。",
+        "現有 memory 基礎不是二乃角色知識庫；尚須角色輸出契約/原作口吻/來源與記憶清理。",
+        "4GB VRAM 上 WebGPU/LLM、Irodori 與3D同時佔用風險尚未量測。"
+      ],
+      "fit": "更適合將桌寵當長期產品時採作主幹；先接本機 TTS、用現成暫用模型驗證單回合與取消，再決定完整二乃美術路線。",
+      "source_urls": [
+        "https://github.com/moeru-ai/airi/blob/main/README.md",
+        "https://github.com/moeru-ai/airi/blob/main/apps/stage-tamagotchi/src/main/windows/main/index.ts",
+        "https://github.com/moeru-ai/airi/blob/main/apps/stage-tamagotchi/src/main/windows/shared/window.ts",
+        "https://github.com/moeru-ai/airi/blob/main/apps/stage-tamagotchi-kirie/docs/host-architecture.md",
+        "https://github.com/moeru-ai/airi/blob/main/packages/model-driver-lipsync/src/live2d/index.ts",
+        "https://github.com/moeru-ai/airi/blob/main/packages/model-driver-lipsync/src/shared/wlipsync/vowel-driver.ts",
+        "https://github.com/moeru-ai/airi/blob/main/packages/stage-ui/src/stores/memory.ts",
+        "https://github.com/moeru-ai/airi/blob/main/packages/provider-inference/src/providers/local/ollama/index.ts",
+        "https://github.com/moeru-ai/airi/blob/main/packages/provider-inference/src/providers/local/lm-studio/index.ts"
+      ]
+    },
+    {
+      "canonical_url": "https://github.com/semperai/amica",
+      "full_name": "semperai/amica",
+      "observed_at": "2026-11-01T05:48:32.115838+00:00",
+      "stats": {
+        "stargazers_count": 1617,
+        "forks_count": 275,
+        "updated_at": "2026-10-29T17:00:19Z",
+        "pushed_at": "2026-09-22T15:52:53Z",
+        "archived": false,
+        "default_branch": "master"
+      },
+      "code_license": "MIT",
+      "latest_release": {
+        "tag_name": null,
+        "published_at": null,
+        "html_url": null,
+        "error": "HTTP Error 404: Not Found"
+      },
+      "api_source": "https://api.github.com/repos/semperai/amica",
+      "classification": "完整 VRM 對話 companion；次選參照",
+      "recommendation_priority": 3,
+      "platform": {
+        "stack": "React/Next.js/TypeScript + Tauri 桌面包。",
+        "windows": "README 提供 Windows 路線，但下載連結指向另一 llama-piper-go repo；目前本 repo /releases/latest 回404，不能當作本 repo 有新近正式 Windows release。",
+        "desktop_pet": "tauri.conf.json 有透明視窗與 systemTray；main window仍為一般可調尺寸視窗。未確認全域置頂/透明區點擊穿透/桌寵模式完整可用，不能由 transparent:true 推論全部具備。",
+        "multi_monitor": "未確認。",
+        "visuals": [
+          "VRM 3D，未確認 Live2D"
+        ],
+        "rig_requirement": "需要二乃 VRM 與對應 blendshapes；無法直接沿用未備妥的 Live2D rig。"
+      },
+      "voice": {
+        "asr": "README 明列 speech recognition，可用服務需依選定 backend；LM Studio compatible ChatGPT API、Ollama、llama.cpp 在 README 列出。",
+        "tts": "SpeechT5、OpenAI、AllTalk/XTTS 等；localXTTS.ts 先取 output_file_url 再 fetch 完整音訊。",
+        "text_segmentation_and_queue": "情緒 docs 說解析 LLM stream；目前查看的 OpenAI/AllTalk TTS 均先 await 完整 arrayBuffer。未充分核實全鏈文本分句排程/自動打斷，列未知。",
+        "interrupt": "未核實可用 barge-in 與正在合成的取消。",
+        "echo": "未核實 AEC/揚聲器免回音。",
+        "lip_sync": "lipSync.ts 從 time-domain waveform 取最大絕對音量、sigmoid 壓縮後映嘴巴；不是音素/五母音時間軸。",
+        "emotion": "emotion docs 提供14種標記→VRM face/blendshapes 的模式，易借用角色表達架構。"
+      },
+      "agent_memory": {
+        "existing": "可設角色 prompt、角色分享/匯入與情緒標記。",
+        "missing": "未核實成熟的跨會話持久事實檢索；二乃 canonical facts/來源優先序/長期使用者記憶仍需補。"
+      },
+      "irodori_adapter": {
+        "native_support": false,
+        "minimal_changes": [
+          "最少改動可讓未來 Irodori wrapper 實作 POST /v1/audio/speech，設定 openai_tts_url 為不含 /v1 的 base URL、填 model/voice 與非空 apiKey；openaiTTS.ts 直接 append /v1/audio/speech，回傳音訊 ArrayBuffer。",
+          "動態 caption 不在現有 openaiTTS(message:string) body；需新增函式參數與角色輸出橋接，或新增獨立 Irodori TTS backend。",
+          "可以仿 AllTalk 完整音檔流程，但那不是 Irodori 原生協議，也不會降低 batch CLI 載入/首包成本。取消/queue需另核實或新增。"
+        ],
+        "source_urls": [
+          "https://github.com/semperai/amica/blob/master/src/features/openaiTTS/openaiTTS.ts",
+          "https://github.com/semperai/amica/blob/master/src/features/localXTTS/localXTTS.ts"
+        ]
+      },
+      "license_details": {
+        "code": "大多數程式 MIT。",
+        "assets_sdk": "README 明列3D模型/圖片由原作者各別授權；不能把預設角色改成二乃就視為無限制。",
+        "source_urls": [
+          "https://github.com/semperai/amica/blob/master/LICENSE",
+          "https://github.com/semperai/amica/blob/master/README.md"
+        ]
+      },
+      "strengths": [
+        "VRM 情緒系統直觀，容易參考台詞標記與表情映射。",
+        "本機 LLM 與本機 TTS 服務路線已存在。"
+      ],
+      "gaps": [
+        "Windows 安裝包來源/發佈狀態不如 AIRI 直接清楚。",
+        "未證明桌寵穿透/多螢幕、免回音、可靠打斷與長期記憶。",
+        "若選 Live2D 而非 VRM，與我們美術方向不合。"
+      ],
+      "fit": "作為 VRM 表情與簡單 TTS adapter 參照；目前不優於前兩個作二乃 Windows 桌寵主體。",
+      "source_urls": [
+        "https://github.com/semperai/amica/blob/master/README.md",
+        "https://github.com/semperai/amica/blob/master/src-tauri/tauri.conf.json",
+        "https://github.com/semperai/amica/blob/master/src/features/lipSync/lipSync.ts",
+        "https://github.com/semperai/amica/blob/master/docs/overview/emotion-system.md"
+      ]
+    },
+    {
+      "canonical_url": "https://github.com/pipecat-ai/pipecat",
+      "full_name": "pipecat-ai/pipecat",
+      "observed_at": "2026-11-01T05:48:32.225214+00:00",
+      "stats": {
+        "stargazers_count": 16969,
+        "forks_count": 3019,
+        "updated_at": "2026-11-01T05:41:07Z",
+        "pushed_at": "2026-10-31T18:09:09Z",
+        "archived": false,
+        "default_branch": "main"
+      },
+      "code_license": "BSD-2-Clause",
+      "latest_release": {
+        "tag_name": "v1.15.0",
+        "published_at": "2026-10-29T05:50:54Z",
+        "html_url": "https://github.com/pipecat-ai/pipecat/releases/tag/v1.15.0",
+        "error": null
+      },
+      "api_source": "https://api.github.com/repos/pipecat-ai/pipecat",
+      "classification": "語音與多模態 Agent 基建；不是桌寵本體",
+      "recommendation_priority": 4,
+      "platform": {
+        "stack": "Python frame-based asynchronous pipelines；WebRTC/WebSocket/FastAPI/local transports。",
+        "windows": "可把 Python agent 接 Windows frontend；本輪未驗證 Windows 本地音訊 extras 的安裝與驅動。不得描述成下載即用的 Windows 透明桌寵。",
+        "desktop_pet": "無內建二乃角色桌面殼、透明置頂穿透或多螢幕寵物窗口。",
+        "visuals": [
+          "可透過獨立 frontend/RTVI 控制模型；不是原生 Live2D/VRM桌寵"
+        ],
+        "multi_monitor": "不適用，需由桌面 UI 實作。"
+      },
+      "voice": {
+        "asr": "WhisperSTTService 支援 device='cpu' 與 compute_type='int8'；有大量其他STT provider。",
+        "vad": "SileroVADAnalyzer 使用 ONNX，current code 明確 force_onnx_cpu=True。",
+        "llm": "OLLamaLLMService extends OpenAILLMService，預設 http://localhost:11434/v1；LM Studio 亦可走自訂 OpenAI-compatible LLM base URL，但需驗證其具體請求功能。",
+        "tts": "TTSService 管理句子聚合、音訊frame與中斷；選擇 sentence/token aggregation。不是每個 provider 都支援 token streaming。",
+        "text_segmentation_and_queue": "框架具 sentence/token aggregation、音訊上下文與frame順序；可取代自寫語音調度。",
+        "interrupt": "有 InterruptionFrame 與 cancel hooks；自訂 Irodori service仍要將取消傳入真正的後端。",
+        "echo": "傳輸端 WebRTC 與實際 frontend/AEC設定決定回音效果；Silero VAD 本身不是 AEC。",
+        "lip_sync": "不直接提供二乃 Live2D/VRM嘴型；可用播放音訊衍生音量或另接 viseme driver。",
+        "emotion": "需自定義 Agent/frame metadata 及 frontend emotion/motion binding。"
+      },
+      "agent_memory": {
+        "existing": "LLM context/工具與 memory provider擴充（README列 mem0）；可組工作流程。",
+        "missing": "不內建二乃角色人格、官方設定、口吻台詞庫或完整桌寵互動記憶產品。"
+      },
+      "irodori_adapter": {
+        "native_support": false,
+        "minimal_changes": [
+          "新增 IrodoriTTSService(TTSService)，實作 current run_tts(text:str, context_id:str) async generator。",
+          "呼叫我們未來常駐本機 HTTP/WS service；將 WAV解碼/重採樣為所選 sample_rate/num_channels 的PCM frame，yield TTSAudioRawFrame 或使用框架提供的audio-context helper；遵循 start/stop/error frame生命週期。",
+          "caption/delivery metadata需由 Agent輸出在請求/自訂frame中保留；音訊frame須帶可辨別的context/turn，interrupt時清除queue並丟棄過期音訊。",
+          "可先包完整分句WAV，再改真PCM增量；Pipecat不能把batch模型自動變成低首包串流。"
+        ],
+        "source_urls": [
+          "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/services/tts_service.py",
+          "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/services/piper/tts.py"
+        ]
+      },
+      "license_details": {
+        "code": "BSD-2-Clause。",
+        "dependencies": "各provider/model各有條款。例如 current Piper adapter 明確提示進程內 piper-tts 是 GPL-3.0，另有 HTTP隔離選項；不能用框架BSD概括所有依賴。",
+        "source_urls": [
+          "https://github.com/pipecat-ai/pipecat/blob/main/LICENSE",
+          "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/services/piper/tts.py"
+        ]
+      },
+      "strengths": [
+        "語音frame/turn/中斷擴充邊界清楚；適合需要嚴格控制本機語音管線時借用。",
+        "CPU Silero與CPU INT8 Whisper有直接代碼支援，可降低4GB顯卡競爭。"
+      ],
+      "gaps": [
+        "仍須另外選擇桌面殼、渲染器、人格/記憶。",
+        "與已有完整語音管線的AIRI/OLLV再套一層未必值得，初版不建議重複編排。"
+      ],
+      "fit": "若前兩者的語音取消/排程無法達標，再採作獨立語音服務；不是第一階段必要依賴。",
+      "source_urls": [
+        "https://github.com/pipecat-ai/pipecat/blob/main/README.md",
+        "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/audio/vad/silero.py",
+        "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/services/whisper/stt.py",
+        "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/services/ollama/llm.py"
+      ]
+    },
+    {
+      "canonical_url": "https://github.com/livekit/agents",
+      "full_name": "livekit/agents",
+      "observed_at": "2026-11-01T05:48:32.204735+00:00",
+      "stats": {
+        "stargazers_count": 15030,
+        "forks_count": 4041,
+        "updated_at": "2026-11-01T03:27:22Z",
+        "pushed_at": "2026-10-31T07:10:44Z",
+        "archived": false,
+        "default_branch": "main"
+      },
+      "code_license": "Apache-2.0",
+      "latest_release": {
+        "tag_name": "livekit-agents@1.8.10",
+        "published_at": "2026-10-29T17:00:12Z",
+        "html_url": "https://github.com/livekit/agents/releases/tag/livekit-agents%401.8.10",
+        "error": null
+      },
+      "api_source": "https://api.github.com/repos/livekit/agents",
+      "classification": "即時語音Agent/WebRTC基建；不是桌寵本體",
+      "recommendation_priority": 5,
+      "platform": {
+        "stack": "Python Agents；Node.js另有agents-js；WebRTC frontend與LiveKit server/cloud/self-hosted。",
+        "windows": "README提供本地console音訊模式；正式frontend/多端連線通常接LiveKit Cloud或self-hosted server。不是Windows桌寵安裝器。",
+        "desktop_pet": "透明常駐、置頂、點擊穿透、拖曳、多螢幕與Live2D/VRM視覺都需另做。",
+        "multi_monitor": "不適用，UI責任。",
+        "visuals": [
+          "可接avatar frontend/provider，並非直接附完整Live2D/VRM桌寵"
+        ]
+      },
+      "voice": {
+        "asr_vad": "可選插件STT與Silero VAD/turn detection；選用本地與雲端能力需分清。",
+        "llm": "可用插件或自定LLM node；本機OpenAI-compatible可另接。",
+        "tts": "TTS抽象區分ChunkedStream與SynthesizeStream；stream adapter可將非串流TTS與分句文字管線結合。",
+        "text_segmentation_and_queue": "AgentSession/pipeline nodes處理語音與文字段；current docs支援FlushSentinel提早送一段TTS，段落各自合成/播出。",
+        "interrupt": "有VAD打斷、SpeechHandle/turn handling；adaptive interruption是額外模型能力，current docs明示使用LiveKit Cloud credentials。不能把全部進階功能描述成純離線內建。",
+        "echo": "WebRTC transport與client音訊/AEC設定、noise cancellation各自分層；Cloud增強噪音處理不能當作本地保證。",
+        "lip_sync": "需要frontend根據AudioFrame/播放音訊另行驅動；非內建二乃mouth。",
+        "emotion": "自定metadata/data channel與角色renderer對接。"
+      },
+      "agent_memory": {
+        "existing": "Agent instructions、chat context、tools/RAG/hooks可用。",
+        "missing": "持久二乃角色/使用者記憶需要自行選storage/檢索與來源策略。"
+      },
+      "irodori_adapter": {
+        "native_support": false,
+        "minimal_changes": [
+          "在Agent.tts_node覆寫，消費文字段並呼叫本機Irodori服務，yield rtc.AudioFrame；或新增tts.TTS subclass，實作synthesize→ChunkedStream。",
+          "若Irodori尚非串流，先用ChunkedStream._run(output_emitter:AudioEmitter)推送整句解碼後frames，或用StreamAdapter分句。真正串流需實作SynthesizeStream並確保後端有增量音訊。",
+          "輸出要標定sample_rate、num_channels與正確PCM格式；將caption由結構化Agent輸出傳給自訂node，不把emotion字樣直接念出。",
+          "取消必須處理未來HTTP/WS連線、GPU排程與過期turn；選用WebRTC部署時額外維護LiveKit server/client。"
+        ],
+        "source_urls": [
+          "https://docs.livekit.io/agents/logic/nodes/",
+          "https://docs.livekit.io/agents/models/tts/",
+          "https://github.com/livekit/agents/blob/main/livekit-agents/livekit/agents/tts/tts.py"
+        ]
+      },
+      "license_details": {
+        "code": "Apache-2.0。",
+        "models": "README另列LiveKit turn detection models採LiveKit Model License；雲端服務與各provider不是Apache程式授權的一部分。",
+        "source_urls": [
+          "https://github.com/livekit/agents/blob/main/LICENSE",
+          "https://github.com/livekit/agents/blob/main/MODEL_LICENSE",
+          "https://github.com/livekit/agents/blob/main/README.md"
+        ]
+      },
+      "strengths": [
+        "turn handling、語音傳輸、插件與多端連線工具完整。",
+        "未來跨設備/遠端web/直播語音入口比單機桌寵更有價值。"
+      ],
+      "gaps": [
+        "對單台Windows桌寵帶來較多server/transport複雜度。",
+        "仍需全部視覺殼、二乃Agent、持久memory及Irodoriadapter。"
+      ],
+      "fit": "列遠期多端/串流需求參照；單機二乃MVP不優先引入。",
+      "source_urls": [
+        "https://github.com/livekit/agents/blob/main/README.md",
+        "https://docs.livekit.io/agents/logic/turns/",
+        "https://docs.livekit.io/agents/logic/turns/adaptive-interruption-handling/",
+        "https://docs.livekit.io/reference/python/livekit/agents/tts/index.html"
+      ]
+    }
+  ],
+  "additional_screened_out": [
+    {
+      "canonical_url": "https://github.com/LeafYeeXYZ/DigitalLife",
+      "full_name": "LeafYeeXYZ/DigitalLife",
+      "observed_at": "2026-11-01T05:48:32.159934+00:00",
+      "stats": {
+        "stargazers_count": 51,
+        "forks_count": 7,
+        "updated_at": "2026-10-27T02:11:15Z",
+        "pushed_at": "2026-09-25T12:29:25Z",
+        "archived": true,
+        "default_branch": "main"
+      },
+      "code_license": "GPL-3.0",
+      "latest_release": {
+        "tag_name": "v2.0.0",
+        "published_at": "2025-04-30T08:42:08Z",
+        "html_url": "https://github.com/LeafYeeXYZ/DigitalLife/releases/tag/v2.0.0",
+        "error": null
+      },
+      "api_source": "https://api.github.com/repos/LeafYeeXYZ/DigitalLife",
+      "classification": "封存的完整companion參考，非主推",
+      "reason": "README明說不再維護；API archived=true，GitHub頁面記錄2026-09-25封存。只有51 stars，不應包裝為著名活躍主幹。",
+      "reusable_ideas": "對話摘要、跨會話記憶、自我概念/使用者輪廓的設計說明；支援OpenAI-compatible/Ollama、F5/Fish TTS、Web Speech STT、Live2D。",
+      "desktop_status": "Tauri config是1200×800一般視窗，無transparent/alwaysOnTop設定證據；不能因有桌面版就說是桌寵。",
+      "adapter_hook": "既有F5/Fish服務需適配成Irodori協議；本輪未深查實作，不列精確修改清單。",
+      "license_details": "GPL-3.0程式；Live2D模型仍有各別條款。",
+      "source_urls": [
+        "https://github.com/LeafYeeXYZ/DigitalLife",
+        "https://github.com/LeafYeeXYZ/DigitalLife/blob/main/README.md",
+        "https://github.com/LeafYeeXYZ/DigitalLife/blob/main/src-tauri/tauri.conf.json",
+        "https://github.com/LeafYeeXYZ/DigitalLife/blob/main/LICENSE"
+      ]
+    },
+    {
+      "full_name": "tegnike/aituber-kit",
+      "canonical_url": "https://github.com/tegnike/aituber-kit",
+      "classification": "功能完整的網頁AITuber參考；source-available custom license，非寬鬆授權主幹",
+      "stats_status": "2026-11-01T05:50:06Z api.github.com repo/releases 請求403 rate limit；不填猜測數字。",
+      "reason": "支援日文語音/VRM/Live2D、情緒、LM Studio/Ollama與RAG，但官方README本質是web app；官方AGENTS.md說Electron production path仍是placeholder/開發用途，不能當成現成Windows透明桌寵。",
+      "license_details": "v2起自訂非商用/商用雙軌；個人非商用可免費，商用另需授權。模型另有條款；同梱Live2D不是可任意改作/訓練/重分發的資產。此次只指出再利用範圍，不建立新批准流程。",
+      "source_urls": [
+        "https://github.com/tegnike/aituber-kit/blob/main/docs/README_en.md",
+        "https://github.com/tegnike/aituber-kit/blob/main/LICENSE",
+        "https://github.com/tegnike/aituber-kit/blob/main/AGENTS.md",
+        "https://github.com/tegnike/aituber-kit/blob/main/docs/character_model_licence_en.md"
+      ]
+    }
+  ],
+  "layering": {
+    "companion_bodies": [
+      "AIRI",
+      "Open-LLM-VTuber + Open-LLM-VTuber-Web",
+      "Amica"
+    ],
+    "voice_infrastructure": [
+      "Pipecat",
+      "LiveKit Agents"
+    ],
+    "distinction": "前3者已有可見角色與對話產品；後2者提供語音/Agent傳輸與排程，仍需桌面殼與角色renderer。第一版不必同時堆疊所有框架。",
+    "proposed_minimal_chain": "麥克風/按鍵輸入 → VAD/ASR → 二乃角色Agent(設定+記憶+原作口吻) → 按句輸出{text_ja, attitude, intensity, delivery, expression, motion} → caption映射 → 本機Irodori常駐單佇列 → 播放/嘴型/表情。"
+  },
+  "machine_options": {
+    "machine": "Windows；RTX 3050 Ti 4GB VRAM；16GB system RAM；CPU型號/可用RAM與顯存並行水位未由本worker量測。",
+    "evidence": "faster-whisper官方提供device='cpu', compute_type='int8'；其CPU small模型benchmark約1.5GB RAM是在官方指定機器與設定，不是我們的延遲承諾。Pipecat也有CPU INT8 Whisper與CPU ONNX Silero代碼。",
+    "option_a": {
+      "name": "本機優先且保留二乃音色",
+      "allocation": "Irodori優先使用GPU；Silero VAD與小型多語ASR放CPU；先用1–3B量化本機LLM走CPU或很有限offload，縮短context；UI只啟一個renderer並降低閒置動畫負擔。",
+      "tradeoff": "這是待量測方案。LLM日文角色品質/CPU延遲、TTS實際常駐顯存與WebGL顯存佔用可能仍不符要求，不能保證全套即時fit。"
+    },
+    "option_b": {
+      "name": "最早可交付原型",
+      "allocation": "先以文字輸入/按鍵觸發，僅常駐Irodori與桌寵渲染；Agent可先用小型本機LLM/固定台詞驗證metadata與播音，再加CPU ASR。",
+      "tradeoff": "可分開確認聲音、取消與表情，不用先載入所有大型模型；這是開發排序，不是最終功能縮減。"
+    },
+    "option_c": {
+      "name": "若使用者未來接受外部LLM",
+      "allocation": "僅把台詞Agent LLM放外部服務，本機ASR與Irodori TTS維持；可減少4GBVRAM競爭。",
+      "tradeoff": "需要另外由使用者選擇服務/隱私與成本；本次未連線任何帳號/未付費。最終二乃聲音仍由本機TTS生成。"
+    },
+    "avoid": "不要直接承諾7B LLM + 大型Whisper + Irodori全部GPU常駐4GB仍即時；也不要靠每句卸載重載模型假裝常駐低延遲。先記錄steady VRAM/RAM、TTFT/首音、RTF、queue與打斷丟棄行為。",
+    "source_urls": [
+      "https://github.com/SYSTRAN/faster-whisper/blob/master/README.md",
+      "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/audio/vad/silero.py",
+      "https://github.com/pipecat-ai/pipecat/blob/main/src/pipecat/services/whisper/stt.py"
+    ]
+  },
+  "remaining_product_work": [
+    {
+      "order": 1,
+      "item": "決定二乃視覺格式與可用rig",
+      "deliverable": "先確認Live2D/VRM/sprite路線與資產來源，列出idle/talk/listen/happy/angry/blush等必要表情及可用參數；沒有rig前不能宣稱完成桌寵外形。"
+    },
+    {
+      "order": 2,
+      "item": "把現有Irodori batch能力變成可接入服務",
+      "deliverable": "模型常駐、單一GPUqueue、文字+caption請求、唯一segment/turn id、WAV/PCM輸出、錯誤timeout與cancel/過期結果丟棄。先分句WAV再決定句內串流。"
+    },
+    {
+      "order": 3,
+      "item": "角色Agent與記憶",
+      "deliverable": "官方設定核心→百科補充且保留出處→原作口吻樣例；區分固定角色資料、近期上下文、使用者可編輯長期記憶。逐句輸出日文台詞與delivery metadata，避免模型幻覺寫回canonical facts。"
+    },
+    {
+      "order": 4,
+      "item": "選一個companion主幹串完整縱向回合",
+      "deliverable": "優先OLLV快速驗證或AIRI長期主幹；文字輸入→角色台詞→本機二乃音訊→同步表情嘴型→停止與恢復下一回合。"
+    },
+    {
+      "order": 5,
+      "item": "加入收音、VAD/ASR與自然打斷",
+      "deliverable": "CPU小型ASR、麥克風裝置切換、回音控制、開始/結束說話判斷、取消LLM與TTS、清除播放queue及記憶只保留已聽見內容。"
+    },
+    {
+      "order": 6,
+      "item": "Windows常駐完成度",
+      "deliverable": "透明、置頂、點擊穿透/可互動切換、拖曳、系統匣、音量/靜音、開機啟動、跨螢幕/DPI、崩潰恢復；先確認所選殼已支援哪些再補缺口。"
+    },
+    {
+      "order": 7,
+      "item": "最小必要驗收",
+      "deliverable": "同批整合完成後確認單回合首音與連續多回合、插話立即停止舊音、回音不觸發自問自答、GPU/RAM穩定、表情/字幕與實際播放一致；未執行者保留待驗證。"
+    }
+  ],
+  "recommendation_note": "以上排序只比較本檔已研究的候選；主 agent 的N.E.K.O與桌寵shell研究可能改變最終選型。",
+  "_archive_note": "Historical design/source survey exported from the original workspace. Recommendations, local readiness, hardware observations and line references describe that earlier stage, not the current app or a fresh verification. Browser captures, screen images, model/data outputs and full articles are intentionally excluded. See README.md for current architecture."
+}

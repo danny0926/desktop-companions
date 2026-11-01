@@ -1,0 +1,14 @@
+Use case: identity-preserve
+Asset type: six-frame small expression and sitting sprite sheet, transparent PNG.
+Input image 1: Nino's exact local pixel-art style master, a 96x112 logical sprite nearest-neighbor enlarged. Use it as the invariant character design and pixel grid.
+Primary request: Draw SIX variants of the SAME tiny Nino sprite. Keep the head size, bob haircut, butterfly ribbons, face proportions, outfit, colors, outline pixel grid, body height and baseline the same as the source. The first five use the same standing body and change only expression; the sixth is a sitting pose with knees bent. Do not redesign her into a glossy big-eyed chibi. This is flat limited-palette low-resolution game art, about 31 opaque colors.
+Layout: exactly 3 columns by 2 rows of six equal 96x112 logical-pixel cells, nearest-neighbor enlarged for delivery. Complete sprite in each cell, no cropped hair ribbons or shoes. Plenty of transparent margin. No text, borders, labels, floor or shadow.
+Frame order left to right, then next row:
+1 BLINK: same standing sprite, eyes gently closed as short dark pixel strokes, tiny closed neutral mouth, NOT a happy laughing face.
+2 TALK: same standing sprite, open simple blue eyes and a tiny dark open speaking mouth, one or two logical pixels tall. Natural modest conversational face.
+3 HAPPY: same standing sprite, small closed smiling eyes and tiny cheerful open mouth. Very subtle, no hearts or effects.
+4 ANNOYED: same standing sprite, slightly lowered brows over the small blue eyes, tiny pout, restrained tsundere displeasure.
+5 SHY: same standing sprite, small blue eyes looking a little down/aside, two simple pink cheek pixel marks, very small bashful smile.
+6 SIT: same Nino calmly sitting on the ground, knees bent together and hands resting near knees, shoes fully visible and feet on the same baseline near the bottom; head naturally lower than standing sprites. Same bob, ribbons, body proportions and modest outfit. Not a chair or prop.
+Style invariants: one logical pixel dark outline; crisp square pixel clusters on ONE uniform pixel grid; simple flat tones, no gradient or soft light, no dither/noise, no intricate hair strands or tiny subpixels. Eyes use just two blue colors, dark lash and one pale pixel, not glass. No accessories beyond the existing butterfly ribbons. Do not enlarge heads or add glossy highlights.
+Background: actual transparent alpha. Only the six sprites opaque.

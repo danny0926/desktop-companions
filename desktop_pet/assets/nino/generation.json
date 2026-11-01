@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "asset_id": "nino-pixel-v1",
+  "created_on": "2026-11-01",
+  "generation": {
+    "mode": "built-in image_gen__imagegen",
+    "transparent_background": true,
+    "intent": "new independently generated fan-art; reference screenshot is style only",
+    "prompt": "Use case: stylized-concept\nAsset type: transparent pixel-art sprite atlas for an independent Windows desktop companion.\nPrimary request: Create a production-ready 3 by 3 atlas, nine evenly spaced full-body sprites of Nino Nakano from The Quintessential Quintuplets, the short pink-haired season-two version. This is new unofficial fan art. The earlier desktop-pet gallery screenshot is a STYLE reference only, not an edit target, and do not reproduce any gallery character.\nSubject identity: compact super-deformed chibi Nino, about 2.6 heads tall, rose-pink straight bob/shoulder-length hair with blunt bangs and longer side locks; two unmistakable black butterfly hair ribbons with cyan-blue wing accents, one on each side; large sapphire-blue eyes; small sweet confident mouth. White buttoned blouse, open black long cardigan, simple bright leaf-green pleated skirt, opaque white over-knee socks, black loafers. Both feet grounded, relaxed arms at sides with tiny hands, body front-facing, one coherent design.\nStyle: authentic low-resolution videogame pixel art like a carefully hand-pixeled desktop mascot; crisp visible stair-step silhouette, chunky square pixel clusters, dark plum 1 to 2 logical pixel outline, simple cel-shaded limited palette, charming readable face. Large head, tiny limbs. It should read as a real pixel sprite at 160 pixels tall, not a smooth anime illustration. No gradients, blur, painted texture, glossy rendering or fine anti-aliased line work.\nComposition: exact 3-column by 3-row grid on a square canvas. Nine equal square cells, no gutters, no separators, no borders, no labels. Each cell contains exactly one full-body sprite. Center the exact same body silhouette horizontally in every cell, with feet on the same local baseline at 90% of the cell height and hair top at 10%. Sprite must fit with generous transparent space at every edge; butterflies never cross cell boundaries. Keep hair, costume, body size, pose, hands, feet and ground position identical across all nine frames; facial expression alone changes.\nFrame order left to right, top to bottom:\n1 neutral idle: open blue eyes, tiny friendly closed smile, relaxed brows, attentive and composed, NOT angry.\n2 blinking: both eyes gently closed, same tiny smile, same face and body.\n3 talking-small: open blue eyes, small open speaking mouth.\n4 talking-open: open blue eyes, larger open speaking mouth, friendly conversational face.\n5 happy: joyful crescent closed eyes, small beaming open smile.\n6 mildly annoyed: small pout, slightly lowered brows, restrained tsundere displeasure, NOT furious or violent.\n7 shy: blue eyes glancing slightly aside, visibly rosy cheeks, bashful tiny smile.\n8 surprised: wide blue eyes, small round O mouth, raised brows.\n9 sad: softened blue eyes, gently worried brows, small downturned mouth, quiet sadness, no tears or effects.\nBackground: actual fully transparent alpha. Only the nine character sprites are opaque.\nConstraints: no writing, no numbers, no watermark, no floor, no shadow, no checkerboard drawn into image, no detached hearts/stars/speech icons, no extra accessories, no extra characters, no motion streaks. Each sprite is a clean separate cutout.",
+    "source_dimensions": [
+      1254,
+      1254
+    ]
+  },
+  "design_choice": {
+    "character": "Nino Nakano / 中野二乃, The Quintessential Quintuplets",
+    "version": "short-haired season-two design",
+    "identity": [
+      "rose-pink hair",
+      "blue eyes",
+      "black butterfly ribbons with cyan-blue accents",
+      "white blouse",
+      "open black cardigan",
+      "green pleated skirt",
+      "white over-knee socks",
+      "black loafers"
+    ],
+    "default_expression": "attentive, softly confident, small friendly smile; displeasure is one optional expression",
+    "style": "pixel-art-adjacent chibi fan-art draft; generated edges retain source alpha"
+  },
+  "references": [
+    {
+      "role": "character identity; observed image only, no pixels used in final art",
+      "url": "https://www.tbs.co.jp/anime/5hanayome/2nd/character/chara02.html",
+      "image_url": "https://www.tbs.co.jp/anime/5hanayome/2nd/character/img/character_02_2.png"
+    },
+    {
+      "role": "gallery screenshot style only; no character or pixel reuse"
+    },
+    {
+      "role": "atlas and stable anchor methodology",
+      "url": "https://codexpet.top/guide"
+    },
+    {
+      "role": "image/behavior separation methodology; no VPet art reused",
+      "url": "https://github.com/LorisYounger/VPet"
+    },
+    {
+      "role": "per-frame duration and grounded anchor methodology; no Shimeji art reused",
+      "url": "https://github.com/MisakoChan/shimeji-ee/blob/master/conf/actions.xml"
+    }
+  ],
+  "processing": {
+    "operations": [
+      "Select nine generated sprite regions by observed actual geometry",
+      "Crop with small transparent margin",
+      "Translate integer pixels into 384x448 transparent frame with alpha128 visible baseline y=432",
+      "Pack frames row-major into 3x3 PNG atlas",
+      "Export individual frames"
+    ],
+    "source_pixels_preserved": true,
+    "alpha_preserved": true,
+    "no_geometric_redrawing": true,
+    "no_animation_frames_synthesized": true,
+    "per_frame_records": "manifest.json frames.*.source_crop / source_opaque_bounds_alpha128"
+  },
+  "limitations": [
+    "Art is a generated first draft, not an official asset or a commissioned hand-pixelled production sprite.",
+    "All expressions share a frontal standing pose; there are no walking or directional animation frames.",
+    "Thinking and listening intentionally reuse idle/blink.",
+    "Speaking has two mouth drawings on a timed loop, not phoneme-accurate lip sync.",
+    "Minor generated hair/body texture variation between expressions remains; alpha pixels are preserved."
+  ],
+  "rights": {
+    "kind": "unofficial generated fan art of an existing fictional character",
+    "original_character_rights": "© 春場ねぎ・講談社 / 五等分の花嫁 rights holders",
+    "distribution_note": "No source project artwork is copied. Project code licensing does not grant rights to the underlying character."
+  },
+  "export_note": "Sanitized for independent repository: original screenshots, browser captures, generated raw intermediates and machine paths are excluded. Historical generation descriptions are provenance, not a new validation claim."
+}

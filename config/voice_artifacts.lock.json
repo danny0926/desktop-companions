@@ -1,0 +1,31 @@
+{
+  "schema": "nino-voice-artifacts-v1",
+  "upstream": {
+    "url": "https://github.com/Aratako/Irodori-TTS.git",
+    "commit": "59be938c99d48b5653ca5aa3fdd0cddaa56940e5"
+  },
+  "base": {
+    "repo_id": "Aratako/Irodori-TTS-v4.1-Small",
+    "revision": "2b28324dc263ed5e6638b3cf3dd94c82ead07b4b",
+    "filename": "model.safetensors",
+    "size_bytes": 3064295596,
+    "sha256": "c85de88c01700cb53538e706f128ebcb1b8513ad21d7d0e75f58bc82cdbf89f6",
+    "include": ["model.safetensors", "tokenizer/*"]
+  },
+  "codec": {
+    "repo_id": "Aratako/Semantic-DACVAE-Japanese-32dim",
+    "revision": "47376ee24834d7a05a48ebabfe3cde29b3c5e214",
+    "include": ["weights.pth", "config.json"]
+  },
+  "watermark": {
+    "repo_id": "sony/silentcipher",
+    "revision": "a1c4d021905e0dc5b24be5f68db5fc4dba410ee1",
+    "include": ["44_1_khz/73999_iteration/*"]
+  },
+  "user_supplied": {
+    "adapter_sha256": "69ccbe7abf83735725f11bef586902fa25c52397229032102ab2984031ab0235",
+    "adapter_config_sha256": "095011a28295f369ae7cbfcc5be12a6d22d9a886b914187deda74b23f43cbc3b",
+    "reference_sha256": "f85b55bfcac97027c84707c1c6c7487509073cbb04b6f36d60e8254fe3fb876d",
+    "note": "Original final-step-500 adapter and deterministic reference latent are not distributed. Supply compatible artifacts and explicit expected hashes in desktop_pet_voice.local.json."
+  }
+}

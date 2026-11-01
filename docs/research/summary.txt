@@ -1,0 +1,20 @@
+歷史選型研究存檔：內容描述實作前的評估，並非本版架構或新環境的驗證結果。目前使用原生 Tk/Win32 外殼與 Codex 訂閱對話，請以根目錄 README.md 為準。
+
+二乃桌寵：現況與實作摘要
+
+推薦先評估 Open-LLM-VTuber 作為 Windows 桌寵 MVP，以 Python adapter 接本機日文 TTS。它目前的 TTS 呼叫以 text 為主，需擴充 attitude、intensity、delivery 等語氣資料。
+
+候選用途：
+- Open-LLM-VTuber：優先評估的文字對話桌寵；我們需接本機 TTS 並擴充語氣呼叫。
+- AIRI：較完整的 2D／3D 與口型長期方案；已有角色隔離 IndexedDB 事實記憶基礎，Memory Alaya 仍在開發。wLipSync 估 AEIOU 嘴形，不是 Irodori 音素對齊。
+- N.E.K.O：陪伴 Agent 與持久記憶參考；Irodori 需要自訂 TTS provider／adapter。
+- VPet：Windows 2D sprite 桌寵。
+- Mate-Engine：Unity Windows VRM 3D 桌寵。
+- BongoCat：Live2D 桌面 overlay 與事件互動參考。
+以上均為選型參考，尚未在本機安裝驗證。來源與其他篩選項見 index.html、shells.json、companions.json。
+
+本機語音：已有 8 段故事音檔。一段 16.52 秒語音完整生成與 CPU watermark 處理共 15.22 秒；batch 冷載模型、tokenizer、codec 共 18.66 秒。這不是首音延遲，也不證明 Irodori 原生音訊串流。CPU watermark 增加明顯耗時，需保留處理契約並納入延遲設計。
+
+實作要點：4 GB 顯存採單一常駐 TTS worker 與受控佇列；可播放前句時產生下一句，不能分句並行啟多份模型。補上日文日期、時間、數字及人名讀音前處理。播放器 stop／清佇列與取消模型推論是兩件事；後者需要 runtime 協作。二乃視覺素材尚無可用證據，Live2D 尚未定案，可先用雙嘴形 PNG 原型。
+
+階段順序：P0 打字、日文角色台詞、本機 TTS、簡單角色播放與嘴型；P1 麥克風、VAD／ASR、停止與記憶；P2 桌面互動、事件與更完整動作。首音 2 秒與停止 250 毫秒只是尚未量測的目標。已有 380 筆資料與 30 筆 caption label，主要後續工作是產品整合。

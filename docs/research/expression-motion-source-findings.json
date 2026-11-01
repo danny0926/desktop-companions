@@ -1,0 +1,101 @@
+{
+  "reviewed_on": "2026-11-01",
+  "scope": "Bounded web search for Nino Nakano expression and desktop-pet action material; personal fan-art desktop-pet context.",
+  "queries": [
+    "Nino Nakano shimeji desktop pet artist DeviantArt download",
+    "中野二乃 shimeji デスクトップ マスコット 配布",
+    "Nino Nakano shimeji github sprites",
+    "\"Nino Nakano\" \"shimeji\"",
+    "\"五等分の花嫁\" \"しめじ\"",
+    "\"Nino Nakano\" sprite sheet",
+    "Nino Nakano chibi expressions"
+  ],
+  "decision": "No complete Nino pixel Shimeji animation pack matching the existing accepted design was verified during this bounded search. Retain current pixel style, generate eight distinct expressions and four four-phase stationary gestures. Sources below inform pose/expression/context only; no downloaded third-party character pixels enter the application atlas.",
+  "candidates": [
+    {
+      "title": "Nino Nakano community Codex pet",
+      "url": "https://www.aimcp.info/zh/codex-pets/nino-nakano-cafbf702",
+      "source_type": "Aggregator listing, not verified author origin",
+      "credit_as_listed": "Waguri",
+      "availability": "Public poster fetched successfully; package.zip URL returned HTTP 500 with 40-byte JSON response on this review.",
+      "download_url": "https://www.aimcp.info/api/codex-pets/nino-nakano-cafbf702/package.zip",
+      "format": "Public 192x208 WebP poster; archive contents and animation count could not be verified.",
+      "observed_content": "Poster is a long-haired chibi illustration with green skirt and butterfly ribbons; visibly different from current short-haired low-resolution art.",
+      "reuse_terms": "Listing explicitly labels license unknown. An original author page or adaptation grant was not established.",
+      "selected": false,
+      "art_reused": false
+    },
+    {
+      "title": "[無料] 中野二乃 {制服,私服} 3Dモデル [五等分の花嫁]",
+      "url": "https://booth.pm/ja/items/4943175",
+      "source_type": "Creator's BOOTH product page",
+      "creator": "きりは屋 / uduki-riha",
+      "availability": "Free school-uniform and casual downloads listed; no purchase or authenticated download performed.",
+      "format": "BLEND, FBX, PNG textures and readme; 26 expression shape keys described by creator.",
+      "observed_content": "Multiple face previews; school uniform, blue eyes and black ribbons. Useful expression variety reference, not a ready pixel sprite animation sheet.",
+      "reuse_terms": "Creator positions the content for viewing and illustration reference, rather than VRChat use. No broader sprite redistribution license assumed.",
+      "selected": "Expression/context reference only",
+      "art_reused": false
+    },
+    {
+      "title": "Nino Nakano (Chibi), Summer Memories Also Come in Five",
+      "url": "https://www.spriters-resource.com/nintendo_switch/thequintessentialquintupletssummermemoriesalsocomeinfive/asset/162442/",
+      "source_type": "Game-asset preservation archive; game artwork, not original uploader's fan art",
+      "availability": "Public asset page and preview indexed; direct PNG link exposed. Web fetch of that PNG timed out; no archive was downloaded.",
+      "format": "1385x1109 PNG sheet per indexed preview",
+      "observed_content": "Several separate chibi scenes/poses including reading, resting, flowers and eating; not successive frames of a standing desktop-pet gesture.",
+      "reuse_terms": "Game and character artwork remains with its rights holders; upload presence is not a new reuse license.",
+      "selected": "Pose/context survey only",
+      "art_reused": false
+    },
+    {
+      "title": "Nakano Nino - KOF Sprite (Pixel Art)",
+      "url": "https://www.reddit.com/r/NinoNakano/comments/16ob9su/nakano_nino_kof_sprite_pixel_art/",
+      "source_type": "Creator's post",
+      "creator": "Rawk-Klark",
+      "availability": "Public two-image post, with creator crediting pro_p24 and ProfNote as the underlying long/short-hair illustration references and mentioning DeviantArt/Stash versions.",
+      "format": "Two KOF-style pixel figures; no multi-action chibi pack verified.",
+      "observed_content": "Long-haired and short-haired variants at fighting-game proportions; incompatible with current chibi frame dimensions and intended quiet gestures.",
+      "reuse_terms": "No adaptation/redistribution grant established on opened post.",
+      "selected": false,
+      "art_reused": false
+    },
+    {
+      "title": "Nino Nakano by RickyRado",
+      "url": "https://www.newgrounds.com/art/view/rickyrado/nino-nakano",
+      "source_type": "Creator's art page",
+      "creator": "RickyRado",
+      "availability": "Public illustration page, uploaded 2021-10-20.",
+      "format": "Single illustration, not an animation pack.",
+      "observed_content": "A source with explicit reuse terms but no production multi-frame desktop-pet material.",
+      "reuse_terms": "Page states attribution, noncommercial use and share-alike conditions. No pixels used, so the current generated art is not a derivative of this illustration.",
+      "selected": false,
+      "art_reused": false
+    },
+    {
+      "title": "Shimeji-ee actions.xml source",
+      "url": "https://github.com/MisakoChan/shimeji-ee/blob/master/conf/actions.xml",
+      "source_type": "Public source repository; Shimeji-ee fork",
+      "availability": "XML content available in indexed source view.",
+      "format": "XML action trees referencing numbered PNG poses, explicit anchors, velocities and per-pose durations.",
+      "observed_content": "Separate stationary, movement and transition actions; action sequences can be non-looping and use pauses between motions. Informs timing and planted-foot design rather than importing an engine or code.",
+      "reuse_terms": "No XML or sprite files copied; concepts only. This note does not claim a character-art license from an engine's source license.",
+      "selected": "Timing/anchor methodology reference",
+      "art_reused": false
+    },
+    {
+      "title": "TV anime second-season Nino character page",
+      "url": "https://www.tbs.co.jp/anime/5hanayome/2nd/character/chara02.html",
+      "source_type": "Official TBS character page",
+      "availability": "Public official character page opened.",
+      "format": "Character identity and appearance reference, not a sprite pack.",
+      "observed_content": "Short pink-haired Nino identity context and characteristic butterfly hair ribbons.",
+      "reuse_terms": "Official artwork does not carry an adaptation grant here; identity/context reference only.",
+      "selected": "Character consistency reference",
+      "art_reused": false
+    }
+  ],
+  "downloads_executed": "One public poster only, retained as a source-review thumbnail. No external runtime, executable, script, paid pack, browser launch or TTS/GPU process was used.",
+  "license_note": "Availability and rights are recorded separately. Unknown license is not described as free/open licensing. No third-party sprite pixels were redistributed in the generated atlas.",
+  "_archive_note": "Historical design/source survey exported from the original workspace. Recommendations, local readiness, hardware observations and line references describe that earlier stage, not the current app or a fresh verification. Browser captures, screen images, model/data outputs and full articles are intentionally excluded. See README.md for current architecture."
+}

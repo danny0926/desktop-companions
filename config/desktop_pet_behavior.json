@@ -1,0 +1,53 @@
+{
+  "schema": "desktop-pet-behavior-v1",
+  "roaming": {
+    "enabled": true,
+    "speed_pixels_per_second": 34,
+    "idle_min_seconds": 12,
+    "idle_max_seconds": 28,
+    "rest_seconds": 50,
+    "rest_probability": 0.2,
+    "min_walk_pixels": 72,
+    "max_walk_pixels": 260,
+    "side_padding": 8,
+    "bottom_padding": 0,
+    "mouse_clearance": 36,
+    "mouse_pause_seconds": 2,
+    "resume_delay_seconds": 2,
+    "max_step_seconds": 0.15
+  },
+  "activity": {
+    "enabled": true,
+    "sample_interval_seconds": 2,
+    "process_cache_seconds": 15
+  },
+  "idle_actions": {
+    "enabled": true,
+    "min_gap_seconds": 10,
+    "max_gap_seconds": 30,
+    "min_duration_seconds": 2.2,
+    "max_duration_seconds": 3.4
+  },
+  "proactive": {
+    "enabled": true,
+    "mode": "occasional",
+    "cooldown_seconds": 600,
+    "max_events_per_hour": 3,
+    "return_after_idle_seconds": 180,
+    "returned_input_seconds": 8,
+    "return_cooldown_seconds": 900,
+    "focus_after_seconds": 1800,
+    "focus_active_idle_seconds": 30,
+    "focus_cooldown_seconds": 1800,
+    "manual_cooldown_seconds": 90,
+    "event_ttl_seconds": 60,
+    "max_observation_gap_seconds": 10,
+    "max_reply_chars": 36,
+    "screen_enabled": true,
+    "screen_min_seconds": 300,
+    "screen_max_seconds": 720,
+    "screen_event_ttl_seconds": 60,
+    "screen_max_idle_seconds": 60,
+    "screen_scope": "active_window"
+  }
+}

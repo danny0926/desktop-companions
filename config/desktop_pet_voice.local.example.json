@@ -1,0 +1,12 @@
+{
+  "python": ".venv-irodori-gpu/Scripts/python.exe",
+  "upstream_dir": ".vendor/irodori-tts",
+  "hf_home": ".cache_hf",
+  "model_path": "artifacts/irodori-base/model.safetensors",
+  "codec_path": "artifacts/semantic-codec/weights.pth",
+  "watermark_dir": "artifacts/silentcipher",
+  "adapter_path": "artifacts/nino-adapter",
+  "adapter_sha256": "69ccbe7abf83735725f11bef586902fa25c52397229032102ab2984031ab0235",
+  "reference_latent": "artifacts/reference/reference_latent.pt",
+  "reference_sha256": "f85b55bfcac97027c84707c1c6c7487509073cbb04b6f36d60e8254fe3fb876d"
+}

@@ -1,0 +1,170 @@
+{
+  "schema": "desktop-pet-readiness-v1",
+  "scope": "Read-only evidence review of the existing workspace; no runtime was started.",
+  "overall": "partial",
+  "hardware_context": {
+    "known_from_user": "RTX 3050 Ti Laptop GPU, 4 GB VRAM, 16 GB RAM.",
+    "observed_snapshot": "Not sampled for this report. Historical run snapshots are per-run and should not be read as current available RAM."
+  },
+  "capabilities": [
+    {
+      "name": "Local Japanese TTS with Nino adapter and reference conditioning",
+      "status": "ready_for_offline_generation",
+      "evidence": [
+        "runtime/irodori_lowmem.py:292-322,529-590",
+        "outputs/nino-story-local-v1/06_long_confession.json: device, adapter_path, status",
+        "outputs/nino-story-local-v1/08_after_rain.json: device, adapter_path, status"
+      ],
+      "details": "Irodori-TTS-v4.1-Small base plus the run-20261031T165530Z-4ebdab62 best-step-450 adapter; BF16 model and codec on CUDA, Japanese text/caption and reference latent conditioning. The adapter is only one component: the base checkpoint, codec, tokenizers/text encoder, reference data, and runtime also need deployment resources."
+    },
+    {
+      "name": "Speaker reference and caption control",
+      "status": "ready_for_offline_generation",
+      "evidence": [
+        "runtime/irodori_lowmem_story.py:77-80,112",
+        "outputs/nino-story-local-v1/06_long_confession.json: reference/caption fields",
+        "outputs/nino-story-local-v1/preview-manifest.json: speaker, emotion_labels_are, segments"
+      ],
+      "details": "The generator accepts Japanese caption and reference latent inputs; it validates text and caption token counts against the runtime limits. This is conditioned synthesis, not a live voice conversation pipeline."
+    },
+    {
+      "name": "Long-form story output",
+      "status": "ready_as_sequential_audio_files",
+      "evidence": [
+        "outputs/nino-story-local-v1/preview-manifest.json: clip_count_available, clip_count_total, full_story_ready, segments",
+        "outputs/nino-story-local-v1/06_long_confession.json: audio.seconds=28.16",
+        "outputs/nino-story-local-v1/08_after_rain.json: audio.seconds=16.52"
+      ],
+      "details": "Eight story scenes have generated outputs and a manifest; individual scenes are generated as complete WAVs. This does not establish continuous streaming playback or interruption support."
+    },
+    {
+      "name": "Local GPU execution and resource telemetry",
+      "status": "ready_for_bounded_batch_runs",
+      "evidence": [
+        "runtime/irodori_lowmem.py: MemoryGuard and CUDA allocation telemetry",
+        "outputs/nino-story-local-v1/06_long_confession.json: memory_snapshots, gpu_peak_allocated_bytes, gpu_peak_reserved_bytes",
+        "outputs/nino-story-local-v1/08_after_rain.json: memory_snapshots, gpu_peak_allocated_bytes, gpu_peak_reserved_bytes",
+        "outputs/nino-story-local-v1/batch-decode-20261031T183618.019476Z.json: lowest_host_headroom_bytes"
+      ],
+      "details": "Example scene peak CUDA allocated/reserved was about 2.32/2.71 GB for 06 and 2.92/3.00 GB for 08, with allocator cap about 3.0 GB. Example host process working set reached about 2.24 GB and private bytes about 6.56 GB in 08; the batch codec run recorded roughly 2.70 GB lowest physical headroom. These vary by run and competing applications."
+    },
+    {
+      "name": "Generation timing",
+      "status": "measured_for_offline_outputs_only",
+      "evidence": [
+        "outputs/nino-story-local-v1/06_long_confession.json: timings_seconds, timing_scope, rtf",
+        "outputs/nino-story-local-v1/08_after_rain.json: timings_seconds, timing_scope, rtf",
+        "runtime/irodori_lowmem_story.py:102,118-151,193"
+      ],
+      "details": "Those examples output 28.16 s in 26.53 s synthesis (RTF 0.942) and 16.52 s in 15.22 s synthesis (RTF 0.921), where synthesis includes the CPU watermark. A cold batch load was 18.66 s (model 11.73, tokenizers 2.20, codec 4.52); this load is excluded from per-scene hot RTF. These are completed-file elapsed times, not first-audio latency."
+    },
+    {
+      "name": "Watermark path",
+      "status": "implemented_with_material_added_latency",
+      "evidence": [
+        "runtime/irodori_lowmem.py:510-522,569-590",
+        "runtime/irodori_lowmem_story.py:161-210",
+        "outputs/nino-story-local-v1/06_long_confession.json: watermark_processing, timings_seconds.cpu_watermark",
+        "outputs/nino-story-local-v1/08_after_rain.json: watermark_processing, timings_seconds.cpu_watermark"
+      ],
+      "details": "Official SilentCipher CPU FP32 watermark is applied after GPU generation/decoding, in approximately 4-second chunks with overlap. Example CPU watermark time was 17.94 s for the 28.16-second scene and 10.08 s for the 16.52-second scene. Story path may restart into a separate CPU watermark process; cold/load and restart gaps are not the same as interactive response latency."
+    },
+    {
+      "name": "Training data / fine-tuning",
+      "status": "existing_but_not_the_desktop_pet_integration",
+      "evidence": [
+        "lab-gpu-v4/runs/run-20261101T034224Z-fb704c61/exports",
+        "outputs/dataset/training-v4/summary.json"
+      ],
+      "details": "The identified run is a fine-tuning artifact and the user reports 380 data items with 30 caption labels. Dataset/model iteration is not the main missing desktop-pet engineering work; do not treat the adapter alone as a deployable TTS system."
+    }
+  ],
+  "interactive_readiness": {
+    "status": "not_implemented_or_not_evidenced",
+    "offline_file_generation_is_not_realtime": "Existing RTF near 0.92 means the measured full synthesis plus watermark time was near the resulting audio duration in these examples. Load costs, sequential scene processing, scheduling, and UI/playback are outside that RTF; no live response guarantee follows.",
+    "first_audio_latency": {
+      "status": "unknown; existing RTF is not first-audio latency",
+      "evidence": "Existing RTF around 0.92-0.94 is measured for complete audio synthesis and excludes cold loading; no first-chunk timestamp exists. CPU SilentCipher watermark adds material post-generation time (about 10.08 s for a 16.52 s scene and 17.94 s for a 28.16 s scene in cited examples)."
+    },
+    "true_chunk_streaming": {
+      "status": "not_evidenced_for_native_model_streaming; sentence_level_pipeline_is_feasible",
+      "evidence": "Reviewed wrapper generates and saves complete scene/utterance audio; it does not expose native incremental audio chunks. Wrapping the completed-WAV path in HTTP does not establish true streaming.",
+      "mvp_route": "For MVP, split a complete reply into short Japanese sentences, generate the next sentence while playing the previous one, and measure perceived first audio. This is sentence-level pipelining, not a claim that Irodori itself streams audio."
+    },
+    "barging_and_cancel": {
+      "status": "not_implemented_in_current_runtime",
+      "evidence": "No request cancellation or playback interruption path in reviewed runtime.",
+      "mvp_acceptance": "Add stop/cancel and discard stale queued audio. A <=250 ms stop target is aspirational and unmeasured."
+    },
+    "resident_api_or_server": {
+      "status": "not_implemented",
+      "evidence": "Reviewed entrypoints are offline CLI/batch scripts and process-separated stages. No resident server/stream endpoint is evidenced; placing HTTP around a complete-WAV request would not by itself provide incremental model streaming."
+    },
+    "audio_playback_queue": {
+      "status": "not_implemented",
+      "evidence": "Listen HTML pages are for reviewing generated recordings; they are not a desktop playback queue/runtime."
+    },
+    "voice_input_vad_asr_echo_handling": {
+      "status": "not_implemented",
+      "evidence": "No microphone capture, VAD, live ASR, turn-taking, or echo cancellation path evidenced."
+    },
+    "agent_memory_character_knowledge": {
+      "status": "not_implemented",
+      "evidence": "Story text/captions and speaker labels exist as authored inputs; no interactive agent, persistent memory, or character knowledge system evidenced."
+    },
+    "live2d_desktop_shell_character_assets": {
+      "status": "not_implemented",
+      "evidence": "No Live2D runtime, desktop overlay/window shell, or integrated character asset set evidenced. Existing listen pages only expose audio review."
+    }
+  },
+  "known_constraints_and_unknowns": [
+    {
+      "name": "Irodori input limits",
+      "status": "partial",
+      "detail": "Text and caption token limits are checked against runtime.default_text_max_len/default_caption_max_len in the runner. No fixed max-seconds duration limit was identified in the reviewed wrapper; generated duration is observed output, not evidence of an unlimited request size.",
+      "evidence": [
+        "runtime/irodori_lowmem_story.py:77-80",
+        "runtime/irodori_lowmem.py:551-554"
+      ]
+    },
+    {
+      "name": "Desktop idle resource budget",
+      "status": "unknown",
+      "detail": "Historical run snapshots show high host-memory pressure and GPU peaks close to the configured cap; idle resident model memory and contention alongside a desktop renderer have not been measured. A previously observed 1.49 GB available RAM was a point-in-time condition, not a machine specification."
+    },
+    {
+      "name": "Sentence pipelining versus native audio streaming",
+      "status": "partial",
+      "detail": "MVP can pipeline complete short sentences: generate the next while playing the prior one. This is distinct from native per-utterance audio chunk streaming, which is not evidenced in the reviewed Irodori wrapper. A web/API wrapper alone does not change that.",
+      "evidence": [
+        "runtime/irodori_lowmem_story.py:118-151",
+        "outputs/nino-story-local-v1/06_long_confession.json: timings_seconds, watermark_processing"
+      ]
+    }
+  ],
+  "mvp_acceptance_targets_not_yet_measured": [
+    "Short Japanese sentence pipeline: generate the next sentence while playing the previous sentence; instrument end-of-user-turn to first playable audio. A <=2.0 s first-audio target is aspirational and unmeasured; report cold start separately.",
+    "Stop/cancel target <=250 ms after a new user turn; discard stale queued output. Aspirational and unmeasured.",
+    "Resident single process serves multiple requests without reloading; report cold-start separately from warm request latency.",
+    "Barge-in test: stop current playback and cancel generation within <= 250 ms after a new user turn; no stale queued audio plays afterward.",
+    "Measure full application idle and active host RAM plus GPU allocated/reserved while TTS, UI/Live2D, and playback run together; target <= 12 GB host RAM and <= 3.5 GB VRAM on the known machine, with safety headroom.",
+    "Complete a 30-minute soak with no unbounded queue growth, leaked GPU memory, or failed subsequent request.",
+    "Verify audio queue behavior for pause/resume, ordering, device loss, and interruption; target playback underruns = 0 during a 10-minute scripted session.",
+    "If voice input is in MVP, verify microphone -> VAD -> ASR turn detection and speaker playback echo suppression in a room test; otherwise mark voice input outside MVP explicitly.",
+    "Run dialogue and animation together for 10 minutes with no UI stalls; target animation >= 30 FPS and speech-synchronized mouth motion on measured audio frames.",
+    "Persist and retrieve a small set of user-approved character facts across app restart; prove the dialogue policy does not invent absent memories.",
+    "Preserve the current Irodori watermark processing contract in the normal output path and budget its measured CPU latency; any alternate path must be explicitly designed and reviewed, not silently assumed away."
+  ],
+  "sources": [
+    "README.txt:29-35, 45-60",
+    "runtime/irodori_lowmem.py:292-322, 510-590",
+    "runtime/irodori_lowmem_story.py:77-151, 161-210",
+    "outputs/nino-story-local-v1/preview-manifest.json",
+    "outputs/nino-story-local-v1/06_long_confession.json",
+    "outputs/nino-story-local-v1/08_after_rain.json",
+    "outputs/nino-story-local-v1/batch-decode-20261031T183618.019476Z.json",
+    "outputs/dataset/training-v4/summary.json",
+    "lab-gpu-v4/runs/run-20261101T034224Z-fb704c61/exports"
+  ],
+  "_archive_note": "Historical design/source survey exported from the original workspace. Recommendations, local readiness, hardware observations and line references describe that earlier stage, not the current app or a fresh verification. Browser captures, screen images, model/data outputs and full articles are intentionally excluded. See README.md for current architecture."
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "desktop-pet-app-v1",
+  "sprite_manifest": "desktop_pet/assets/nino-pixel-v2/manifest.json",
+  "default_skin": "pixel_v2",
+  "skins": {
+    "pixel_v2": "desktop_pet/assets/nino-pixel-v2/manifest.json",
+    "q_v1": "desktop_pet/assets/nino/manifest.json"
+  },
+  "behavior_config": "config/desktop_pet_behavior.json",
+  "allow_injected_proactive": false,
+  "screen_observation_enabled": true,
+  "touch_dialogue": true,
+  "agent_config": "config/desktop_pet_character.json",
+  "agent_data_dir": "outputs/pet-agent-v1/state",
+  "voice_config": "config/desktop_pet_voice.json",
+  "state_dir": "outputs/pet-shell-v1/state",
+  "event_log": "outputs/pet-shell-v1/events.jsonl",
+  "conversation_id": "desktop-default",
+  "voice_timeout_seconds": 190,
+  "max_segment_chars": 48,
+  "restore_last_reply_on_start": true,
+  "retry_last_reply_on_start": false,
+  "open_chat_on_start": false
+}

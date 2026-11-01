@@ -1,0 +1,834 @@
+{
+  "schema_version": 1,
+  "scope": "Windows 二乃 AI 桌寵外殼／角色動畫選型；僅研究與路線圖",
+  "observed_on": "2026-11-01",
+  "statistics_note": "stars/forks 為公開 GitHub REST repo API 於 observed_at 的即時讀值，只代表關注度。沒有執行、安裝、效能測試或與本專案 TTS 整合驗證。",
+  "source_access_note": "先成功取得六個 repo metadata 與 releases/latest；後續公開 API 回報 rate limit 後停止 API 查詢，僅讀官方 GitHub/raw source 與官方產品頁。未使用登入或繞過驗證。",
+  "project_context": {
+    "target": "Windows，本機 RTX 3050 Ti Laptop 4 GB／16 GB RAM；既有二乃聲音 TTS 另外處理。",
+    "unknowns": [
+      "2D sprite／Live2D／3D 角色型式未定",
+      "沒有已確認可用的二乃 Live2D 模型",
+      "TTS 與 renderer 同時常駐時的 RAM／VRAM／延遲尚未實測"
+    ],
+    "boundary": "沒有部署、安裝應用、啟動訓練／TTS／server，也沒有搜尋額外語音來源。",
+    "evidence_levels": {
+      "documented": "官方 README、官方 docs 或官方 release 聲稱",
+      "code_inspected": "讀取官方原始碼可見相應實作或介面；不等於在本機驗證",
+      "proposed_integration": "依可見介面提出的本專案設計，並非上游已內建",
+      "unknown": "本輪沒有足夠官方證據"
+    }
+  },
+  "recommendations": [
+    {
+      "repo": "LorisYounger/VPet",
+      "use_if": "想先做會走動、拖拉、摸頭與養成的 2D sprite 二乃桌寵",
+      "rationale": "完整 Windows WPF 桌寵與插件介面；官方還有『角色說話時播放語音』的插件示例，能沿事件改接我們的本機 TTS。",
+      "actual_limits": [
+        "自訂二乃動畫需要自行準備；內附角色素材不是二乃",
+        "原生主路線是逐格動畫；README 的 Live2D/Spine 是插件擴充例子，不能當已內建的通用 Live2D loader",
+        "仍須實作本機語音 provider、播放排程、取消及口型／表情映射"
+      ],
+      "sources": [
+        "https://github.com/LorisYounger/VPet",
+        "https://github.com/LorisYounger/VPet.Plugin.Demo"
+      ]
+    },
+    {
+      "repo": "ayangweb/BongoCat",
+      "use_if": "優先想要會眨眼、跟隨滑鼠、切表情與口型的 Live2D 二乃",
+      "rationale": "近期活躍、Windows release 可得，原生 Live2D renderer、透明 overlay 與輸入互動已有程式；適合作為 Live2D 桌面視窗與模型播放參考。",
+      "actual_limits": [
+        "必須先取得／製作完整二乃 Live2D 模型；一張 PNG 或已訓練聲音不會變成模型",
+        "主要產品行為是 BongoCat 輸入反應；沒有已驗證可直接餵入我們 TTS 的通用 API",
+        "2.x 是原生 Rust 多 crate 架構，非舊版 Tauri；要加對話、HTTP/WS 與播放驅動口型，可能需改 host，而不能假定現有 plugin SDK 足夠",
+        "走動、坐視窗、碰撞與聊天記憶仍需另外設計"
+      ],
+      "sources": [
+        "https://github.com/ayangweb/BongoCat",
+        "https://github.com/ayangweb/BongoCat/releases/tag/v2.4.1",
+        "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-live2d/src/lib.rs"
+      ]
+    }
+  ],
+  "repositories": [
+    {
+      "name": "VPet",
+      "canonical_repo": "LorisYounger/VPet",
+      "repo_url": "https://github.com/LorisYounger/VPet",
+      "role": "完整 Windows 2D sprite 桌寵基底",
+      "stats": {
+        "stars": 7131,
+        "forks": 710,
+        "observed_at": "2026-11-01T05:47:31.1337001Z",
+        "source": "https://api.github.com/repos/LorisYounger/VPet",
+        "pushed_at": "2026-10-30T14:09:44Z",
+        "archived": false
+      },
+      "latest_release": {
+        "status": "API releases/latest 回傳 404；不能報稱存在 GitHub latest release",
+        "tag": null,
+        "published_at": null,
+        "source": "https://api.github.com/repos/LorisYounger/VPet/releases/latest",
+        "distribution": "官方 README 引導免費 Steam 版；核心另有 NuGet",
+        "distribution_source": "https://github.com/LorisYounger/VPet/blob/main/README_en.md"
+      },
+      "license": {
+        "code": {
+          "id": "Apache-2.0",
+          "source": "https://github.com/LorisYounger/VPet/blob/main/LICENSE"
+        },
+        "runtime_sdk": "本輪主路線是 C#／WPF；若額外加 Live2D，Cubism 授權另行適用。",
+        "assets": "README 把內附動畫／圖片與程式授權分開，載有署名、商用與散布條件；不能因程式 Apache-2.0 就認定所有圖像同授權。二乃自製素材需獨立準備。",
+        "assets_source": "https://github.com/LorisYounger/VPet/blob/main/README_en.md"
+      },
+      "stack_platform": {
+        "stack": [
+          "C#",
+          "WPF",
+          "Windows-specific Win32 interop"
+        ],
+        "windows": "官方 Windows app；Core 可嵌入 WPF",
+        "character_formats": [
+          "內建以逐格 pet 動畫為主",
+          "Live2D／Spine 在官方 README 被列為可由 plugin 新增的動畫邏輯"
+        ],
+        "sources": [
+          "https://github.com/LorisYounger/VPet/blob/main/README_en.md",
+          "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows/MainWindow.xaml.cs"
+        ]
+      },
+      "capabilities": [
+        {
+          "feature": "透明、無框",
+          "status": "present",
+          "evidence_level": "code_inspected",
+          "detail": "MainWindow 設 AllowsTransparency／WindowStyle.None，另有 Win32 layered-window 路線。",
+          "sources": [
+            "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows/MainWindow.xaml.cs"
+          ]
+        },
+        {
+          "feature": "滑鼠穿透與托盤切換",
+          "status": "present",
+          "evidence_level": "code_inspected",
+          "detail": "HitThrough 切換 WS_EX_TRANSPARENT，並更新 notifyIcon 選單。",
+          "sources": [
+            "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows/MainWindow.xaml.cs"
+          ]
+        },
+        {
+          "feature": "移動、畫面邊界與目前螢幕",
+          "status": "present",
+          "evidence_level": "code_inspected",
+          "detail": "MWController 有 MoveWindows 與 Screen.FromHandle 等邊界計算；混合 DPI／熱插拔行為本輪未實跑。",
+          "sources": [
+            "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows/Function/MWController.cs"
+          ]
+        },
+        {
+          "feature": "置頂、點擊、拖拉與多種互動",
+          "status": "documented_and_code_references",
+          "evidence_level": "documented",
+          "detail": "官方桌寵與大量互動動畫；MWController 可見 Topmost 的控制。",
+          "sources": [
+            "https://github.com/LorisYounger/VPet/blob/main/README_en.md",
+            "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows/Function/MWController.cs"
+          ]
+        }
+      ],
+      "custom_character": {
+        "required_assets": [
+          "二乃透明逐格動畫及 pet/mod 設定；依 PetLoader／Graph 的資產規格製作",
+          "待機、拖拉、行走、說話及幾種表情；後者是本專案建議的 MVP 組合",
+          "若走 Live2D，還需自行完成對應 renderer plugin 與模型包"
+        ],
+        "detail": "README 列出內建可達 32 類×4 狀態×3 variants 的動畫量，這是素材豐富度說明，不能解讀成我們 MVP 必須一次畫 384 組。缺省動畫如何補齊仍須依 loader 查清。",
+        "sources": [
+          "https://github.com/LorisYounger/VPet/blob/main/README_en.md",
+          "https://github.com/LorisYounger/VPet.ModMaker"
+        ]
+      },
+      "speech_expression_hooks": {
+        "existing": "MainPlugin(IMainWindow)／LoadPlugin() 可取得主視窗與 Core；官方 VPet.Plugin.Demo 有 EdgeTTS 與 ChatGPT 範例。IMainWindow 可見 TalkAPI 及 AudioPlayingVolume。",
+        "existing_sources": [
+          "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows.Interface/MainPlugin.cs",
+          "https://github.com/LorisYounger/VPet/blob/main/VPet-Simulator.Windows.Interface/IMainWindow.cs",
+          "https://github.com/LorisYounger/VPet.Plugin.Demo"
+        ],
+        "local_tts_plan": "沿說話事件寫自有 plugin，以非同步 loopback HTTP／WebSocket adapter 呼叫既有本機 TTS，接收音訊後由單一播放器排程；emotion 標籤映射到我們的逐格動作／表情。這是 proposed_integration，非上游既有 HTTP 契約。",
+        "lipsync_gap": "逐格角色需另備說話／閉嘴素材及播放中切換邏輯；音量介面不代表自動產生精細嘴型。"
+      },
+      "reuse_vs_gaps": {
+        "reuse": [
+          "桌面視窗、托盤、穿透切換、移動與養成互動",
+          "Core／Graph／PetLoader 與 mod/plugin 管理",
+          "官方語音插件的事件接法"
+        ],
+        "build": [
+          "二乃視覺素材與角色行為",
+          "本機 TTS provider、佇列／取消／中斷",
+          "情緒映射、說話口型與聊天狀態／記憶"
+        ],
+        "integration_cost": "sprite 路線中等；改通用 Live2D 路線較高。此為靜態程式結構判斷，非工時估算。"
+      },
+      "recommendation": "首選之一：若使用者要完整會走動的 Q 版桌寵，優先評估 VPet plugin；不要先重寫整套桌面外殼。"
+    },
+    {
+      "name": "BongoCat",
+      "canonical_repo": "ayangweb/BongoCat",
+      "repo_url": "https://github.com/ayangweb/BongoCat",
+      "role": "熱門 Live2D 桌面 overlay 與鍵鼠互動實作",
+      "stats": {
+        "stars": 24418,
+        "forks": 1225,
+        "observed_at": "2026-11-01T05:47:32.9143350Z",
+        "source": "https://api.github.com/repos/ayangweb/BongoCat",
+        "pushed_at": "2026-10-28T00:13:07Z",
+        "archived": false
+      },
+      "latest_release": {
+        "tag": "v2.4.1",
+        "published_at": "2026-10-28T00:38:02Z",
+        "source": "https://github.com/ayangweb/BongoCat/releases/tag/v2.4.1",
+        "windows_assets": [
+          "BongoCat_2.4.1_x64.exe"
+        ],
+        "platform_note": "2.x 官方支援 Windows 10 1903+ x64；ARM64 可仿真 x64；舊 Linux／Tauri 說明不能套用目前版本。",
+        "platform_source": "https://github.com/ayangweb/BongoCat/releases"
+      },
+      "license": {
+        "code": {
+          "id": "Apache-2.0",
+          "note": "2.0 release 明說從 MIT 改為 Apache-2.0",
+          "source": "https://github.com/ayangweb/BongoCat/blob/master/LICENSE"
+        },
+        "runtime_sdk": "使用 Live2D Cubism Core；CONTRIBUTING 指出 Windows Core 以 MSVC .lib 提供，所以需 MSVC 工具鏈。Cubism Core 是另外的 proprietary SDK，不能視為 Apache 原始碼。",
+        "runtime_sources": [
+          "https://github.com/ayangweb/BongoCat/blob/master/CONTRIBUTING.md",
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/Core/LICENSE.md"
+        ],
+        "assets": "模型／角色素材須各看原作者授權，本輪沒有足夠證據把所有內附或社群模型視為 Apache-2.0。二乃模型須自行取得。",
+        "assets_source": "https://github.com/ayangweb/BongoCat/blob/master/README.md"
+      },
+      "stack_platform": {
+        "stack": [
+          "原生 Rust workspace",
+          "gpui-kit 設定 UI",
+          "Windows native overlay",
+          "Live2D Cubism Core",
+          "rodio 音訊"
+        ],
+        "windows": "官方已發布 x64 EXE；未安裝或試跑",
+        "character_formats": [
+          "Cubism 3+ .model3.json 模型包",
+          "moc、textures、motion groups、expressions、physics 等索引"
+        ],
+        "sources": [
+          "https://github.com/ayangweb/BongoCat/blob/master/Cargo.toml",
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-model/src/package.rs",
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-model/src/schema.rs"
+        ]
+      },
+      "capabilities": [
+        {
+          "feature": "透明 overlay／無框／置頂",
+          "status": "present",
+          "evidence_level": "code_inspected",
+          "detail": "原生 Windows overlay 模組可見 WS_POPUP、WS_EX_TOPMOST、layered 與透明樣式；release 也記錄置頂修復。",
+          "sources": [
+            "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-overlay/src/windows/mod.rs",
+            "https://github.com/ayangweb/BongoCat/releases"
+          ]
+        },
+        {
+          "feature": "點擊穿透、hover 隱藏、透明度與位置限制",
+          "status": "present",
+          "evidence_level": "code_inspected",
+          "detail": "OverlayConfig 有 click_through、opacity_percent、hide_on_pointer_hover；原生 overlay 有 drag resize 與 placement 模組。",
+          "sources": [
+            "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-config/src/config_schema/overlay.rs",
+            "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-overlay/src/lib.rs"
+          ]
+        },
+        {
+          "feature": "滑鼠／鍵盤／遊戲手把反應",
+          "status": "present",
+          "evidence_level": "documented",
+          "detail": "README 明列追蹤滑鼠與依輸入播動作；不是 AI 對話功能。",
+          "sources": [
+            "https://github.com/ayangweb/BongoCat/blob/master/README.md"
+          ]
+        },
+        {
+          "feature": "多螢幕",
+          "status": "partial_evidence",
+          "evidence_level": "code_inspected",
+          "detail": "Windows overlay 使用 EnumDisplayMonitors／MonitorFromRect 等；跨螢幕、混合 DPI 與熱插拔品質本輪未驗證。",
+          "sources": [
+            "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-overlay/src/windows/mod.rs"
+          ]
+        }
+      ],
+      "custom_character": {
+        "required_assets": [
+          "資料夾根目錄恰好一個 .model3.json",
+          "其引用的 .moc3／貼圖；若有宣告則須提供 motion3.json、exp3.json、physics3.json 等",
+          "為二乃 rig 定義眨眼、嘴巴開合、視線／頭部及表情參數；動作與表情檔名稱需能映射到上層事件"
+        ],
+        "detail": "官方 package.rs 檢查 .model3.json 入口與引用資源；可導入 Live2D 不表示任意角色已具備 BongoCat 的鍵盤／手部參數綁定。需調整輸入映射並驗證模型版本。",
+        "sources": [
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-model/src/package.rs",
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-model/src/schema.rs",
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-live2d/src/lib.rs"
+        ]
+      },
+      "speech_expression_hooks": {
+        "existing": "Live2D crate 有 expression clip、motion 與 set_parameter；讀取 LipSync model group。設定層有 motions／expressions、play_motion_audio 等項目；2.4 plugin center 是版本化獨立 process protocol。",
+        "existing_sources": [
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-live2d/src/lib.rs",
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-config/src/config_schema/model.rs",
+          "https://github.com/ayangweb/BongoCat/blob/master/crates/bongocat-plugin-sdk/src/lib.rs"
+        ],
+        "local_tts_plan": "proposed_integration：加本機 HTTP/WS client 或 broker，把音訊交給單一播放時鐘，按實際播放的 PCM 音量驅動 LipSync／MouthOpen；emotion 對應 expression/motion。沒有證據證明現有 plugin SDK 能任意控制模型參數，必要時需改 host/runtime。",
+        "lipsync_gap": "程式有 LipSync 支援不代表已接受任意外部 TTS stream，也不代表已有音素級口型；HTTP/WS provider、串流解碼、播放起迄／中斷仍待做。"
+      },
+      "reuse_vs_gaps": {
+        "reuse": [
+          "Windows overlay、穿透、拖拉／縮放與輸入監聽",
+          "Live2D 模型解析、motion／expression／physics 播放",
+          "托盤與設定／模型管理"
+        ],
+        "build": [
+          "二乃 Live2D 模型與行為映射",
+          "本機 TTS／聊天 adapter、同步口型",
+          "桌面自主走動、視窗碰撞／坐窗及聊天狀態"
+        ],
+        "integration_cost": "若僅借 renderer／overlay 是可取的中高難度 Rust 整合；不能把整個輸入反應產品視為即用 AI 伴侶。"
+      },
+      "recommendation": "首選之一：Live2D 技術參考／外殼候選，適合先做會說話、切表情的固定桌面角色；走動需求多時需補較多行為。"
+    },
+    {
+      "name": "DyberPet",
+      "canonical_repo": "ChaozhongLiu/DyberPet",
+      "repo_url": "https://github.com/ChaozhongLiu/DyberPet",
+      "role": "Python／PySide6 sprite 桌寵，適合與本機 Python TTS 團隊銜接",
+      "stats": {
+        "stars": 1016,
+        "forks": 104,
+        "observed_at": "2026-11-01T05:47:31.7482049Z",
+        "source": "https://api.github.com/repos/ChaozhongLiu/DyberPet",
+        "pushed_at": "2026-10-16T14:24:34Z",
+        "archived": false
+      },
+      "latest_release": {
+        "tag": "v0.11.5",
+        "published_at": "2026-10-16T13:51:33Z",
+        "source": "https://github.com/ChaozhongLiu/DyberPet/releases/tag/v0.11.5",
+        "windows_assets": [
+          "v0.11.5_windows_full.zip",
+          "v0.11.5_windows_patch.zip"
+        ],
+        "source_binary_gap": "README 明載 Windows Terminal 公開程式目前至 v0.6.7，LLM 能力暫未完整開源；不能把 v0.11.5 二進位所有 AI 功能當可自由重用的公開程式。"
+      },
+      "license": {
+        "code": {
+          "id": "GPL-3.0",
+          "source": "https://github.com/ChaozhongLiu/DyberPet/blob/main/LICENSE"
+        },
+        "runtime_sdk": "PySide6／Qt 與 Fluent-Widgets 有各自條件；本輪不把它們統稱 MIT。",
+        "assets": "demo 有其他作者／角色素材；GPL 程式授權不自動等於二乃或所有社群素材權利。用自有／可用二乃素材。",
+        "assets_source": "https://github.com/ChaozhongLiu/DyberPet/blob/main/README.md"
+      },
+      "stack_platform": {
+        "stack": [
+          "Python",
+          "PySide6",
+          "Fluent-Widgets",
+          "JSON + PNG frame animation"
+        ],
+        "windows": "官方 Windows release ZIP；README 提供 Windows source 執行說明",
+        "character_formats": [
+          "PNG 逐格動畫",
+          "pet_conf.json",
+          "act_conf.json",
+          "可選 msg／bubble／note 設定"
+        ],
+        "sources": [
+          "https://github.com/ChaozhongLiu/DyberPet/blob/main/README.md",
+          "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
+        ]
+      },
+      "capabilities": [
+        {
+          "feature": "透明、無框與置頂切換",
+          "status": "present",
+          "evidence_level": "code_inspected",
+          "detail": "DyberPet.py 設 FramelessWindowHint、WindowStaysOnTopHint 與 WA_TranslucentBackground。",
+          "sources": [
+            "https://github.com/ChaozhongLiu/DyberPet/blob/main/DyberPet/DyberPet.py"
+          ]
+        },
+        {
+          "feature": "拖拉／掉落、摸頭、動作與移動",
+          "status": "present",
+          "evidence_level": "documented",
+          "detail": "art_dev 對 default／drag／fall、行走與動作時間／位移有詳細規格。",
+          "sources": [
+            "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
+          ]
+        },
+        {
+          "feature": "多螢幕移動",
+          "status": "documented_with_caveat",
+          "evidence_level": "documented",
+          "detail": "README 歷史記錄有多屏幕轉移，當時標註測試中；本輪未驗證最新版源碼與混合 DPI。",
+          "sources": [
+            "https://github.com/ChaozhongLiu/DyberPet/blob/main/README.md"
+          ]
+        },
+        {
+          "feature": "任意點擊穿透",
+          "status": "unknown",
+          "evidence_level": "unknown",
+          "detail": "已讀主視窗設定片段沒有充分證據；不能因透明就報稱滑鼠穿透。",
+          "sources": [
+            "https://github.com/ChaozhongLiu/DyberPet/blob/main/DyberPet/DyberPet.py"
+          ]
+        }
+      ],
+      "custom_character": {
+        "required_assets": [
+          "res/role/PETNAME/action/ 中按動作前綴及 0、1、2 排序的 PNG 幀",
+          "pet_conf.json 與 act_conf.json",
+          "官方最低必要狀態為 default、drag、fall；其他缺失通常以 default 補、prefall 以 fall 補",
+          "要左右走動需 left／right 的素材及位移參數；MVP 另建說話與情緒動作"
+        ],
+        "detail": "素材規格有明確最低集合，所以可以從少量二乃動畫開始，逐步增加表情；公開 framework 主線不是已內建通用 Live2D／VRM。",
+        "sources": [
+          "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md"
+        ]
+      },
+      "speech_expression_hooks": {
+        "existing": "通知／點擊語音與 bubble/note 設定、動作模組及 Qt 執行緒機制；最新 LLM 能力不全在公開源碼。",
+        "existing_sources": [
+          "https://github.com/ChaozhongLiu/DyberPet/blob/main/README.md",
+          "https://github.com/ChaozhongLiu/DyberPet/blob/main/docs/art_dev.md",
+          "https://github.com/ChaozhongLiu/DyberPet/blob/main/DyberPet/DyberPet.py"
+        ],
+        "local_tts_plan": "proposed_integration：用公開版 Python framework 的非 UI worker 呼叫 loopback TTS，透過 Qt signal 送文字／音訊狀態／emotion 給 UI；加單一播放器與說話幀切換。不要將大型 TTS 推論直接塞進 UI thread。",
+        "lipsync_gap": "無已證實的外部即時 TTS HTTP/WS 契約或音素嘴型；需自行接音訊播放和說話狀態。"
+      },
+      "reuse_vs_gaps": {
+        "reuse": [
+          "Python 桌面框架與透明 Qt 視窗",
+          "動作、掉落、互動、設定與簡易角色模組"
+        ],
+        "build": [
+          "自有聊天/TTS橋接與播放",
+          "二乃PNG動作、口型與表情",
+          "查清公開版與新 release 功能差距",
+          "穿透、多屏/DPI等缺口按需求補上"
+        ],
+        "integration_cost": "公開版 Python sprite MVP 相對容易接現有 TTS；完整跟上最新 release／AI 功能的成本不可由開源 README 推定。"
+      },
+      "recommendation": "Python-only 原型備選；若不想進 C#／Rust，可取其公開版先做小範圍 MVP，但不是完整開源 AI 桌寵現成解。"
+    },
+    {
+      "name": "eSheep / desktopPet",
+      "canonical_repo": "Adrianotiger/desktopPet",
+      "repo_url": "https://github.com/Adrianotiger/desktopPet",
+      "role": "經典 sprite 桌面走動／坐視窗行為參考",
+      "stats": {
+        "stars": 1166,
+        "forks": 120,
+        "observed_at": "2026-11-01T05:47:34.1973385Z",
+        "source": "https://api.github.com/repos/Adrianotiger/desktopPet",
+        "pushed_at": "2026-10-28T21:31:46Z",
+        "archived": false
+      },
+      "latest_release": {
+        "tag": "v1.6.0",
+        "published_at": "2026-10-09T15:44:11Z",
+        "source": "https://github.com/Adrianotiger/desktopPet/releases/tag/v1.6.0",
+        "assets": [
+          "DesktopPet.zip",
+          "DesktopPet.gz",
+          "PetEditor_0_7_0.zip"
+        ],
+        "note": "README 指出 Windows Portable 以 .NET 4.7 編譯；有官方 editor/tester 工具。未下載或執行。"
+      },
+      "license": {
+        "code": {
+          "id": "MIT",
+          "source": "https://github.com/Adrianotiger/desktopPet/blob/master/LICENSE.md"
+        },
+        "runtime_sdk": "C#／.NET；音訊使用 NAudio（README attribution）。",
+        "assets": "Pets/esheep64 README 明列 sprite 來源／作者；MIT 主程式不等於所有角色素材均可任意使用。",
+        "assets_source": "https://github.com/Adrianotiger/desktopPet/blob/master/Pets/esheep64/README.md"
+      },
+      "stack_platform": {
+        "stack": [
+          "C#",
+          ".NET 4.7 Windows Portable",
+          "XML animation definitions",
+          "sprite sheet"
+        ],
+        "windows": "官方 README 明載 64-bit Windows portable；亦有 Windows Store 路線",
+        "character_formats": [
+          "等格 sprite sheet",
+          "animations.xml",
+          "48×48 icon"
+        ],
+        "sources": [
+          "https://github.com/Adrianotiger/desktopPet/blob/master/Readme.md",
+          "https://github.com/Adrianotiger/desktopPet/blob/master/Pets/README.md"
+        ]
+      },
+      "capabilities": [
+        {
+          "feature": "桌面走動、掉落到工作列與偵測視窗",
+          "status": "present",
+          "evidence_level": "documented",
+          "detail": "README 明列走跑、桌面視窗偵測與跨多螢幕。",
+          "sources": [
+            "https://github.com/Adrianotiger/desktopPet/blob/master/Readme.md"
+          ]
+        },
+        {
+          "feature": "拖入自訂角色設定",
+          "status": "present",
+          "evidence_level": "documented",
+          "detail": "把 animations.xml 拖到現有寵物上，可載入新的角色定義。",
+          "sources": [
+            "https://github.com/Adrianotiger/desktopPet/blob/master/Pets/README.md"
+          ]
+        },
+        {
+          "feature": "透明／置頂／點擊穿透／托盤的完整開關契約",
+          "status": "not_fully_audited",
+          "evidence_level": "unknown",
+          "detail": "這輪以官方功能及素材文件為主，沒有逐項檢查視窗原始碼；不報稱均已驗證。",
+          "sources": [
+            "https://github.com/Adrianotiger/desktopPet"
+          ]
+        }
+      ],
+      "custom_character": {
+        "required_assets": [
+          "二乃等格 sprite sheet，含所需走路／坐下／掉落／待機等姿態",
+          "animations.xml，描述動畫及行為",
+          "48×48 icon；需要展示角色說明時加 README"
+        ],
+        "detail": "sprite sheet + XML 是與 Live2D 不同的低複雜度素材路線；會說話需要新增嘴型素材與控制。",
+        "sources": [
+          "https://github.com/Adrianotiger/desktopPet/blob/master/Pets/README.md"
+        ]
+      },
+      "speech_expression_hooks": {
+        "existing": "原專案是動畫／行為引擎，README 有 NAudio 音效依賴；沒有發現官方通用 AI/TTS HTTP/WS 控制契約。",
+        "existing_sources": [
+          "https://github.com/Adrianotiger/desktopPet/blob/master/Readme.md"
+        ],
+        "local_tts_plan": "proposed_integration：在 C# host 加 loopback client／事件橋，把音訊播放起迄映射成 speaking／idle XML 行為。直接外掛是否可行仍需看程式入口；不能宣稱免改碼可接。",
+        "lipsync_gap": "需自己做口型動畫、情緒行為及對話框；沒有內建 LLM 或已證實音訊驅動嘴型。"
+      },
+      "reuse_vs_gaps": {
+        "reuse": [
+          "經典桌面行走、視窗邊緣與多螢幕行為設計",
+          "XML 行為與 sprite editor 思路"
+        ],
+        "build": [
+          "對話 UI、記憶與TTS橋",
+          "播放時鐘／取消／嘴型／情緒",
+          "確認哪些 shell 開關能直接沿用"
+        ],
+        "integration_cost": "做走動 sprite 參考有價值；作完整 AI 伴侶需較多上層功能。"
+      },
+      "recommendation": "適合借鑑『在真實視窗邊緣活動』與輕量素材管線；若要聊天、狀態及 mod 系統，VPet 較完整。"
+    },
+    {
+      "name": "Shijima-Qt",
+      "canonical_repo": "pixelomer/Shijima-Qt",
+      "repo_url": "https://github.com/pixelomer/Shijima-Qt",
+      "role": "Shimeji 資產／本機 HTTP 行為 API 參考，非新專案主基底",
+      "stats": {
+        "stars": 201,
+        "forks": 24,
+        "observed_at": "2026-11-01T05:47:32.3092364Z",
+        "source": "https://api.github.com/repos/pixelomer/Shijima-Qt",
+        "pushed_at": "2026-04-29T20:42:33Z",
+        "archived": true
+      },
+      "latest_release": {
+        "tag": "v0.1.0",
+        "published_at": "2025-03-18T20:15:18Z",
+        "source": "https://github.com/pixelomer/Shijima-Qt/releases/tag/v0.1.0",
+        "windows_assets": [
+          "release-windows-x86_64.zip"
+        ],
+        "status": "官方 README 明確宣布 discontinued／archived，穩定版缺少 libshijima/libshimejifinder 新修正；不能只看還有下載就當活躍。"
+      },
+      "license": {
+        "code": {
+          "id": "GPL-3.0",
+          "source": "https://github.com/pixelomer/Shijima-Qt/blob/main/LICENSE"
+        },
+        "runtime_sdk": "Qt6 與 libshijima／libshimejifinder 等相依有各自 notices，repo licenses/ 逐一列出。",
+        "assets": "匯入 shimeji 的圖像／角色授權需個別確認；引擎 GPL 不能替代二乃圖像來源。",
+        "assets_source": "https://github.com/pixelomer/Shijima-Qt/tree/main/licenses"
+      },
+      "stack_platform": {
+        "stack": [
+          "C++",
+          "Qt6",
+          "libshijima",
+          "libshimejifinder"
+        ],
+        "windows": "官方只測 Windows 11，README 說 Windows 10 可能可用；有 x86_64 release",
+        "character_formats": [
+          "Shimeji-ee 相容資產／XML行為與逐格圖"
+        ],
+        "sources": [
+          "https://github.com/pixelomer/Shijima-Qt/blob/main/README.md",
+          "https://github.com/pixelomer/Shijima-Qt/blob/main/com.pixelomer.ShijimaQt.metainfo.xml"
+        ]
+      },
+      "capabilities": [
+        {
+          "feature": "無框置頂、拖拉與音效",
+          "status": "present_in_source",
+          "evidence_level": "code_inspected",
+          "detail": "ShijimaWidget.cc 有 WindowStaysOnTopHint／FramelessWindowHint、drag mouse events 及 SoundEffectManager 呼叫。",
+          "sources": [
+            "https://github.com/pixelomer/Shijima-Qt/blob/main/ShijimaWidget.cc"
+          ]
+        },
+        {
+          "feature": "追蹤 Windows 活動視窗",
+          "status": "present",
+          "evidence_level": "documented",
+          "detail": "README 平台說明明列 Windows window tracking；只承諾官方所測 Win11。",
+          "sources": [
+            "https://github.com/pixelomer/Shijima-Qt/blob/main/README.md"
+          ]
+        },
+        {
+          "feature": "HTTP 行為控制",
+          "status": "documented_in_main_source",
+          "evidence_level": "documented",
+          "detail": "HTTP-API.md 列 http://127.0.0.1:32456/shijima/api/v1，能列出／生成／刪除角色及 PUT 改 anchor／behavior。文件存在於 main，不保證 v0.1.0 release 已含所有 API。",
+          "sources": [
+            "https://github.com/pixelomer/Shijima-Qt/blob/main/HTTP-API.md"
+          ]
+        },
+        {
+          "feature": "多螢幕完整支援與任意滑鼠穿透",
+          "status": "unknown",
+          "evidence_level": "unknown",
+          "detail": "Widget 有 screen boundary 計算，仍不足以報稱多屏切換／混合 DPI／穿透均已完善。",
+          "sources": [
+            "https://github.com/pixelomer/Shijima-Qt/blob/main/ShijimaWidget.cc"
+          ]
+        }
+      ],
+      "custom_character": {
+        "required_assets": [
+          "合法可用的二乃 Shimeji 逐格圖與 Shimeji-ee 動作／行為設定",
+          "若有說話／情緒，需自己增加對應行為和圖像"
+        ],
+        "detail": "可重用 Shimeji 資產規格；不是 Live2D／VRM loader。",
+        "sources": [
+          "https://github.com/pixelomer/Shijima-Qt/blob/main/com.pixelomer.ShijimaQt.metainfo.xml",
+          "https://github.com/pixelomer/Shijima-Qt/blob/main/HTTP-API.md"
+        ]
+      },
+      "speech_expression_hooks": {
+        "existing": "本機 HTTP 可切 behavior，Widget 有聲音播放；HTTP 文件未列任意 TTS 音訊／stream／口型控制。",
+        "existing_sources": [
+          "https://github.com/pixelomer/Shijima-Qt/blob/main/HTTP-API.md",
+          "https://github.com/pixelomer/Shijima-Qt/blob/main/ShijimaWidget.cc"
+        ],
+        "local_tts_plan": "proposed_integration：我們的 broker 播音訊，透過現有行為 API 切 speaking／happy／idle；精細口型、音訊時鐘與取消需要改引擎。還需驗證 API 是否在選定 release 可用。",
+        "lipsync_gap": "behavior 切換不能等同已內建音訊口型。"
+      },
+      "reuse_vs_gaps": {
+        "reuse": [
+          "本機 API 以行為名稱驅動角色的介面設計",
+          "Shimeji 相容資產與活動視窗互動"
+        ],
+        "build": [
+          "承接封存後維護及缺少的修正",
+          "完整TTS／聊天／嘴型",
+          "確認發行版與 main 功能差距"
+        ],
+        "integration_cost": "短期 HTTP demo 可參考；長期維護風險高。"
+      },
+      "recommendation": "作 API／Shimeji 行為參考，因已停止維護，不列新二乃桌寵的首選基底。"
+    },
+    {
+      "name": "Live2D Cubism Native Samples",
+      "canonical_repo": "Live2D/CubismNativeSamples",
+      "repo_url": "https://github.com/Live2D/CubismNativeSamples",
+      "role": "官方模型渲染／動作／表情／嘴型參考，非現成桌寵",
+      "stats": {
+        "stars": 241,
+        "forks": 44,
+        "observed_at": "2026-11-01T05:47:33.5305527Z",
+        "source": "https://api.github.com/repos/Live2D/CubismNativeSamples",
+        "pushed_at": "2026-04-02T02:25:54Z",
+        "archived": false
+      },
+      "latest_release": {
+        "tag": "5-r.5",
+        "published_at": "2026-04-02T02:25:55Z",
+        "source": "https://github.com/Live2D/CubismNativeSamples/releases/tag/5-r.5",
+        "assets": [],
+        "note": "source SDK sample release，非可安裝桌寵；Core 不包含在 repo，需官方 SDK 另取。"
+      },
+      "license": {
+        "code": {
+          "id": "Live2D Open Software License",
+          "spdx_api": "NOASSERTION",
+          "source": "https://github.com/Live2D/CubismNativeSamples/blob/develop/LICENSE.md"
+        },
+        "runtime_sdk": "Live2D Cubism Core 使用 Live2D Proprietary Software License；公開 Sample／Framework 程式不表示 Core 也開源。實際發行須看官方 SDK Release License 的適用條件。",
+        "runtime_sources": [
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/Core/LICENSE.md",
+          "https://www.live2d.com/en/download/cubism-sdk/release-license/"
+        ],
+        "assets": "官方 sample models 依各模型用 Free Material License 或 Sample Model Terms；這些是展示模型，不是二乃。二乃 art／rig 必須另行準備。",
+        "assets_source": "https://github.com/Live2D/CubismNativeSamples/blob/develop/LICENSE.md"
+      },
+      "stack_platform": {
+        "stack": [
+          "C++",
+          "Cubism Native Framework",
+          "Cubism Core",
+          "Windows D3D9／D3D11／OpenGL／Vulkan samples"
+        ],
+        "windows": "官方 Windows 專案與 Windows x86/x86_64 Core；有 VS2017／2019／2022 MSVC 庫說明",
+        "character_formats": [
+          "Cubism Editor runtime export .model3.json／.moc3／textures",
+          "motion、expression、physics、pose 等 sidecars"
+        ],
+        "sources": [
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/README.md",
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/Core/README.md"
+        ]
+      },
+      "capabilities": [
+        {
+          "feature": "模型、動作、表情、眨眼、物理與嘴型渲染",
+          "status": "present_in_source",
+          "evidence_level": "code_inspected",
+          "detail": "Windows LAppModel.cpp 註冊 CubismLipSyncUpdater，從 model setting 取 LipSync IDs，並啟動 wavFileHandler；同檔含動作與表情管理。",
+          "sources": [
+            "https://github.com/Live2D/CubismNativeSamples/blob/develop/Samples/OpenGL/Demo/proj.win.cmake/src/LAppModel.cpp"
+          ]
+        },
+        {
+          "feature": "透明無框／置頂／穿透／托盤／桌面走動／多螢幕桌寵",
+          "status": "not_a_complete_pet_shell",
+          "evidence_level": "documented",
+          "detail": "官方定位為顯示 Cubism Editor 匯出模型的 sample application；不能當已完成桌寵外殼。",
+          "sources": [
+            "https://github.com/Live2D/CubismNativeSamples/blob/develop/README.md"
+          ]
+        }
+      ],
+      "custom_character": {
+        "required_assets": [
+          "分層二乃原畫與 rig 的編輯工程（若從零做）",
+          "runtime 必要的 .moc3、.model3.json 與 texture PNG",
+          "對應 MouthOpen／EyeBlink 等參數及 LipSync group",
+          "想要的 .exp3.json／.motion3.json／physics 等 sidecars"
+        ],
+        "detail": "一張完整 PNG 不是可直接使用的 Live2D 模型；先有可匯入的 runtime 包，才談口型和表情。",
+        "sources": [
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/README.md",
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/Samples/Resources/Haru/Haru.model3.json",
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/Samples/OpenGL/Demo/proj.win.cmake/src/LAppModel.cpp"
+        ]
+      },
+      "speech_expression_hooks": {
+        "existing": "官方 WAV handler／LipSync updater、motion／expression API 可作正確模型驅動依據。",
+        "existing_sources": [
+          "https://github.com/Live2D/CubismNativeSamples/blob/develop/Samples/OpenGL/Demo/proj.win.cmake/src/LAppModel.cpp"
+        ],
+        "local_tts_plan": "proposed_integration：把本機 TTS 已產生的 WAV／PCM 的實際播放音量提供給相應嘴型 updater，再按 emotion 切 expression；若改串流需另接解碼／播放時鐘。HTTP/WS transport 與桌面外殼不在 sample 裡。",
+        "lipsync_gap": "SDK sample 口型不是直接接受任意 TTS HTTP stream；更不是有語意的自動表情系統。"
+      },
+      "reuse_vs_gaps": {
+        "reuse": [
+          "官方模型載入、參數、動作與表情實作",
+          "嘴型／音訊／模型參數關係"
+        ],
+        "build": [
+          "整套桌面 shell、聊天UI與互動",
+          "本機TTS transport、播放取消",
+          "二乃模型與表情設計"
+        ],
+        "integration_cost": "從 Native Samples 自建完整桌寵成本最高；適合用來核對 API 或修現有 renderer。"
+      },
+      "recommendation": "作官方技術規格參考，無需為了有桌寵而從這裡重造一整個 Windows app。"
+    }
+  ],
+  "product_comparisons_not_counted_as_open_source_repositories": [
+    {
+      "name": "Desktop Mate",
+      "official_url": "https://store.steampowered.com/app/3301060/Desktop_Mate/",
+      "canonical_official_app_repo": null,
+      "source_code_status": "本輪未找到官方 app 原始碼 repo 或開源重用授權；以官方 EULA 產品看待，不列入可 fork 開源基底。此說法不是宣稱所有相關工具都閉源。",
+      "useful_reference": "官方商店展示角色坐在／跳過視窗、追游標、拖拉摸頭、語音與鬧鐘；Windows 10 21H1+／11。這些產品行為值得參考。",
+      "integration_limit": "本輪官方商店沒有證據保證自訂二乃模型／本機任意 TTS 有公開穩定 API；社群 mod 不等於官方整合契約。",
+      "evidence_level": "documented"
+    },
+    {
+      "name": "Live2DViewerEX",
+      "official_url": "https://store.steampowered.com/app/616720/Live2DViewerEX/",
+      "canonical_official_app_repo": null,
+      "source_code_status": "本輪未找到官方 app 原始碼 repo／可 fork 授權；是 Pavo Studio 的付費 viewer 產品，而且官方商店明說非 Live2D Inc. 官方產品。",
+      "useful_reference": "官方商店列 Windows、桌面無框模式、自訂 Live2D 模型、multi-display 及 ExAPI 可由外部軟體互動。",
+      "integration_limit": "可列作另買 viewer＋自寫 adapter 的備案；ExAPI 詳細 protocol、本機動態 TTS 音訊注入與口型是否足夠，本輪未查到可作保證的證據，不宣稱已能直接接。",
+      "evidence_level": "documented"
+    }
+  ],
+  "proposed_roadmap": [
+    {
+      "step": 1,
+      "change": "先決定二乃視覺路線；缺模型時以現有合法 PNG 做暫時 stand-in，勿把它描述為完成 Live2D。",
+      "acceptance": "能指認素材清單、來源、格式與能切換的基本狀態；決定 sprite shell 或 Live2D renderer。"
+    },
+    {
+      "step": 2,
+      "change": "建立最小 Windows shell：透明／無框、拖拉、置頂、穿透切換、托盤退出；再處理 DPI／多螢幕。",
+      "acceptance": "角色可擺到想要的位置，切換穿透後仍能從托盤恢復操作；不搶工作焦點。"
+    },
+    {
+      "step": 3,
+      "change": "把既有本機 TTS 包在單一非 UI process 的 adapter；renderer 經 loopback HTTP／WebSocket 取音訊與狀態。這是提案，未指定現有服務已存在。",
+      "acceptance": "同一段文字能依序播放、不重複發聲；支援取消／下一句，UI 在推論中可拖拉。"
+    },
+    {
+      "step": 4,
+      "change": "統一 idle／listening／thinking／speaking／interrupted／error 事件與 emotion→expression／motion 對照。",
+      "acceptance": "由實際 audio playback start/end 驅動嘴型，生成失敗或取消會回 idle；先做到音量級嘴型即可。"
+    },
+    {
+      "step": 5,
+      "change": "接角色對話、簡單記憶與互動動作，再逐步加桌面走動／視窗邊緣行為。",
+      "acceptance": "短對話可連續完成；移動和互動不打斷音訊佇列，表情切換有清楚規則。"
+    },
+    {
+      "step": 6,
+      "change": "在目標筆電上只做一輪整體資源及互動驗收，再補實際失敗點。",
+      "acceptance": "實測首音延遲、長句連播、取消、RAM／VRAM、混合DPI與睡眠恢復；不以 stars 或上游最低配代替本機數據。"
+    }
+  ],
+  "verification": {
+    "json_written_as": "UTF-8 via apply_patch",
+    "execution_status": "所有功能均為來源查核或規劃；沒有把未執行檢查寫成通過。"
+  },
+  "_archive_note": "Historical design/source survey exported from the original workspace. Recommendations, local readiness, hardware observations and line references describe that earlier stage, not the current app or a fresh verification. Browser captures, screen images, model/data outputs and full articles are intentionally excluded. See README.md for current architecture."
+}

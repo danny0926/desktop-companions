@@ -1,0 +1,17 @@
+Use case: identity-preserve
+Asset type: four-frame BACK-VIEW / upward-walk sprite sheet extending the existing low-resolution desktop pet.
+Image 1 is the style/identity master viewed from the front. Image 2 is the newly generated front-walk sheet used only to keep exact proportions, outfit, palette, and four-phase leg timing. Make the SAME girl turned around, walking away from viewer toward the top of the screen. This image must show her back, never her face.
+
+Create one transparent PNG sheet in a strict 2 columns x 2 rows layout. Four equal separated cells, same full-body girl and camera angle in each, head near top and a planted sole at the common ground baseline. No labels, borders or grids. Entire body visible with clear transparent gutters.
+Character identity from behind: short salmon-pink bob with layered straight ends at neck, black and teal butterfly ribbons attached on left and right sides of her hair, back of black long-sleeved cardigan over a white collared shirt (small collar at the nape only if naturally visible), pleated light green school skirt, white knee socks, black loafers. Same short bob silhouette, same compact 2.7-head chibi proportions, small slim body. NO ponytail or long hair. No face, eyes or mouth visible; back of the head and back of the torso must face viewer squarely. Do not draw front shirt buttons or breasts on her back.
+
+Four distinct natural walking-away phases in reading order:
+TOP LEFT contact A: her LEFT leg (viewer-left, rear view) is planted reaching slightly ahead of the other, the right heel is raised behind it; right arm swings ahead (away), left arm gently back (toward viewer).
+TOP RIGHT passing A: left leg supports the body, right knee/foot is visibly bent and passing forward on the right side; body/head 1 logical pixel higher.
+BOTTOM LEFT contact B: RIGHT leg planted reaching ahead, left heel raised behind; the arm positions reverse.
+BOTTOM RIGHT passing B: right leg supports body, LEFT knee/foot bent and passing forward on left side, body/head 1 logical pixel higher.
+Use simple visible alternating shoe heights and small knee bends. At least one shoe touches the baseline in every cell. Readable leg silhouettes; not four standing poses, not jumping, not floating, not a horizontal mirror substitute. Hands remain visible beside hips and alternate gently. Skirt shifts only slightly.
+Head/hair and shoulders should be near-identical from cell to cell apart from natural tiny body bob, and both shoulders remain square from the rear.
+
+Style/medium: authentic restrained low-resolution game pixel art intended for native 96x112 logical pixels; figure about 54x104 pixels. Pixel clusters and flat dark outline exactly like reference sprites. Treat large view as a simple integer-upscaled pixel sprite. Same sparse approximately 31 material colors, no gradients, no shine, no brush texture, no smooth antialiasing, no extra costume detail, no polished high-resolution anime illustration.
+Background must be genuine transparent alpha. No cast shadow, floor or scene. No baked checkerboard, text, watermark or extra objects.
