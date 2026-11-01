@@ -121,6 +121,54 @@ class ScreenObservation:
         }
 
 
+class ManualImage:
+    """A user-selected attachment, separate from expiring screen observations.
+
+    Non-dataclass on purpose: asdict(request/turn) must not copy private bytes.
+    Only metadata() or the durable Markdown reference belongs in persistence.
+    """
+
+    __slots__ = ("_png_bytes", "image_id", "width", "height")
+
+    def __init__(self, *, png_bytes: bytes, image_id: str, width: int, height: int):
+        if not isinstance(image_id, str) or not re.fullmatch(r"[a-f0-9]{64}", image_id):
+            raise ValueError("manual image_id must be a SHA-256 identifier")
+        if any(type(value) is not int or not 1 <= value <= 1600 for value in (width, height)):
+            raise ValueError("manual image dimensions must be between 1 and 1600")
+        if (not isinstance(png_bytes, bytes) or not 33 <= len(png_bytes) <= 8_000_000
+                or png_bytes[:8] != b"\x89PNG\r\n\x1a\n" or png_bytes[12:16] != b"IHDR"
+                or struct.unpack(">II", png_bytes[16:24]) != (width, height)):
+            raise ValueError("manual image must be a bounded PNG matching its dimensions")
+        import hashlib
+        if hashlib.sha256(png_bytes).hexdigest() != image_id:
+            raise ValueError("manual image content does not match its identifier")
+        self._png_bytes, self.image_id = png_bytes, image_id
+        self.width, self.height = width, height
+
+    @property
+    def png_bytes(self) -> bytes:
+        return self._png_bytes
+
+    @property
+    def reference(self) -> str:
+        return "attachment:" + self.image_id
+
+    def metadata(self) -> dict[str, Any]:
+        return {"image_id": self.image_id, "reference": self.reference,
+                "media_type": "image/png", "width": self.width, "height": self.height}
+
+    def to_dict(self) -> dict[str, Any]:
+        return self.metadata()
+
+    def __repr__(self) -> str:
+        return f"ManualImage({self.metadata()!r})"
+
+    def __deepcopy__(self, memo):
+        # Defensive protection if a surrounding dataclass is converted via
+        # asdict: expose metadata, never the private in-memory byte payload.
+        return self.metadata()
+
+
 @dataclass(frozen=True)
 class ProactiveRequest:
     """A system observation, never a user utterance.
@@ -255,12 +303,19 @@ class AgentReply:
     expression: str = "neutral"
     motion: str = "idle"
     provider_mode: str = "offline_demo"
+    display_text_ja: str | None = None
 
     def __post_init__(self) -> None:
         for name, limit in (("turn_id", 160), ("speech_text_ja", 8000), ("caption_ja", 1000), ("provider_mode", 80)):
             object.__setattr__(self, name, _required_text(getattr(self, name), name, limit))
         if self.subtitle_zh is not None and not isinstance(self.subtitle_zh, str):
             raise ValueError("subtitle_zh must be a string or null")
+        if self.display_text_ja is not None:
+            from desktop_pet.markdown_chat import image_references, visible_text
+            display = _required_text(self.display_text_ja, "display_text_ja", 1600)
+            if image_references(display) or " ".join(visible_text(display).split()) != " ".join(self.speech_text_ja.split()):
+                raise ValueError("display_text_ja must format exactly the spoken Japanese, without images")
+            object.__setattr__(self, "display_text_ja", display)
         for name, choices in (
             ("attitude", ATTITUDES), ("intensity", INTENSITIES),
             ("delivery", DELIVERIES), ("expression", EXPRESSIONS), ("motion", MOTIONS),

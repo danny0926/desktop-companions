@@ -209,14 +209,63 @@ class MemoryStore:
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (self.character_id, conversation_id, turn_id, input_text,
                   json.dumps(reply, ensure_ascii=False), _now()))
-            db.execute("""
+            if int(retain_turns) > 0:
+                db.execute("""
                 DELETE FROM conversation_turns WHERE character_id=? AND conversation_id=?
                 AND sequence NOT IN (
                     SELECT sequence FROM conversation_turns WHERE character_id=? AND conversation_id=?
                     ORDER BY sequence DESC LIMIT ?
                 )
+                """, (self.character_id, conversation_id, self.character_id, conversation_id,
+                      int(retain_turns)))
+
+    def conversation_history(self, conversation_id: str, *, limit: int = 60,
+                             offset: int = 0) -> list[dict[str, Any]]:
+        """Return chronological manual turns and actually heard proactive remarks."""
+        limit = min(200, max(1, int(limit)))
+        offset = max(0, int(offset))
+        with self._connection() as db:
+            rows = db.execute("""
+                SELECT kind, sequence, turn_id, input_text, reply_json, heard_text,
+                       delivery_status, created_at, sort_at
+                FROM (
+                    SELECT 'manual' AS kind, sequence, turn_id, input_text, reply_json,
+                           heard_text, delivery_status, created_at, created_at AS sort_at
+                    FROM conversation_turns WHERE character_id=? AND conversation_id=?
+                    UNION ALL
+                    SELECT 'proactive' AS kind, sequence, turn_id, NULL AS input_text,
+                           reply_json, heard_text, delivery_status, created_at,
+                           COALESCE(delivered_at, created_at) AS sort_at
+                    FROM proactive_turns WHERE character_id=? AND conversation_id=?
+                        AND delivery_status IN ('delivered', 'interrupted')
+                        AND reply_json IS NOT NULL AND heard_text IS NOT NULL AND heard_text!=''
+                ) ORDER BY sort_at, kind, sequence LIMIT ? OFFSET ?
             """, (self.character_id, conversation_id, self.character_id, conversation_id,
-                  max(1, int(retain_turns))))
+                  limit, offset)).fetchall()
+        result = []
+        for row in rows:
+            reply = json.loads(row['reply_json']) if row['reply_json'] else {}
+            result.append({
+                'kind': row['kind'], 'turn_id': row['turn_id'],
+                'input_text': row['input_text'], 'reply': reply,
+                'heard_text': row['heard_text'], 'delivery_status': row['delivery_status'],
+                'created_at': row['created_at'],
+            })
+        return result
+
+    def session_info(self, conversation_id: str) -> dict[str, int | str]:
+        with self._connection() as db:
+            manual = db.execute("SELECT COUNT(*) FROM conversation_turns WHERE character_id=? AND conversation_id=?",
+                                (self.character_id, conversation_id)).fetchone()[0]
+            proactive = db.execute("""SELECT COUNT(*) FROM proactive_turns
+                WHERE character_id=? AND conversation_id=? AND delivery_status IN ('delivered','interrupted')
+                    AND reply_json IS NOT NULL AND heard_text IS NOT NULL AND heard_text!=''""",
+                                  (self.character_id, conversation_id)).fetchone()[0]
+            facts = db.execute("SELECT COUNT(*) FROM user_memories WHERE character_id=?",
+                               (self.character_id,)).fetchone()[0]
+        return {'character_id': self.character_id, 'conversation_id': conversation_id,
+                'manual_count': manual, 'proactive_count': proactive,
+                'history_count': manual + proactive, 'memory_count': facts}
 
     def recent_messages(
         self, conversation_id: str, *, turn_limit: int = 8, char_budget: int = 5000,
@@ -331,14 +380,15 @@ class MemoryStore:
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (self.character_id, conversation_id, turn_id, event["event_id"],
                   json.dumps(event, ensure_ascii=False, sort_keys=True), _now()))
-            db.execute("""
+            if int(retain_turns) > 0:
+                db.execute("""
                 DELETE FROM proactive_turns WHERE character_id=? AND conversation_id=?
                 AND sequence NOT IN (
                     SELECT sequence FROM proactive_turns WHERE character_id=? AND conversation_id=?
                     ORDER BY sequence DESC LIMIT ?
                 )
-            """, (self.character_id, conversation_id, self.character_id, conversation_id,
-                  max(1, int(retain_turns))))
+                """, (self.character_id, conversation_id, self.character_id, conversation_id,
+                      int(retain_turns)))
 
     def save_proactive_reply(self, conversation_id: str, turn_id: str, reply: dict[str, Any]) -> None:
         with self._connection() as db:

@@ -214,7 +214,7 @@
     "recent_context_chars": 5000,
     "memory_context_chars": 1800,
     "memory_recall_limit": 6,
-    "retain_turns_per_conversation": 80,
+      "retain_turns_per_conversation": 0,
     "allow_format_repair": true
   },
   "memory": {

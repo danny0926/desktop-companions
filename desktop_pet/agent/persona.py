@@ -78,6 +78,9 @@ def build_system_prompt(
         "返す音声本文は反応の日本語の台詞だけ。利用者の動作、JSON、タグ、括弧のト書き、中国語の説明を読み上げない。",
         "【台詞と演出を分ける】\n"
         "speech_text_ja は実際に口に出す自然な日本語だけ。中国語訳、話者名、括弧のト書き、感情タグ、JSONや命令を混ぜない。"
+        "Markdownの記号、画像参照、URLやファイル名を音声本文に入れない。"
+        "display_text_ja は通常 null。画面で強調や箇条書きが役立つ時だけ Markdown を使えるが、"
+        "表示される日本語は speech_text_ja と完全に同じ台詞にする。画像や追加の説明は含めない。"
         "subtitle_zh は短い繁體中文訳、または null。attitude は心の態度、intensity は感情の強さ、delivery は声の運び方。"
         "日常は daily/light/natural が基本。angry や cold でも intensity を自動で strong にしない。"
         "gentle/medium/firm のような心配からの軽い叱りも自然。愛情やからかいは低い強さでも十分伝わる。"

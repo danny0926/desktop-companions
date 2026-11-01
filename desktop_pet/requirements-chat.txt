@@ -1,0 +1,3 @@
+# Optional native Markdown / user-image support. The basic Tk UI still starts without these.
+markdown-it-py==4.0.0
+Pillow==11.1.0

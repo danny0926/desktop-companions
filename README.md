@@ -29,6 +29,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/start_nino_pet.ps1 -Ch
 - 點／來回摸頭即時反應；點身體開聊天、拖曳身體移動、Shift+拖曳不限區域。右鍵與托盤包含互動、自訂動作、穿透、設定與退出。`Ctrl+Alt+N` 叫回聊天並解除穿透。
 - 中文或日文文字輸入；`Enter` 傳送、`Shift+Enter` 換行、`Esc` 停止。`（摸頭）`、`*輕拍肩膀*`、`/action 自訂動作` 走獨立動作語意，不把旁白讀成語音。
 - 有來源標記的 **18 條角色背景摘要**：6 條官方資料、12 條社群資料。日文台詞、繁中字幕與演出欄位分開；明確記憶寫入與對話交付狀態分開。
+- 「對話與記憶」可翻閱本機對話紀錄並明確新增／刪除重要事實。重新啟動聊天會載入最近 30 筆紀錄，較舊內容可在歷史頁分頁查看；目前保留設定不再自動刪除後續紀錄。
 - 安靜／偶爾／活潑主動頻率；閒置返回時輪換開場意圖，依實際聽過的內容延續話題，避免近期重複。不將閒置推論成離席或工作完成。
 - 聊天視窗可切換坐在原地／起來走走並保存偏好。原生拖曳攜抱使用真實指標位移、抓握與阻尼安定，不循環播放任意搬運影格。
 - 開啟設定、切換坐姿或外觀等展示操作不會取消正在播放的非畫面主動語音。持續閱讀可累積到 300 秒後才進入閒置暫停；全螢幕仍禁止自動語音。
@@ -36,6 +37,32 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/start_nino_pet.ps1 -Ch
 - 語音逐句合成、第一句完成即播放、下一句接續；停止／新輸入取消舊回合。回覆旁可重播當次原始 WAV、收藏原音；缺少音檔與片段不會假裝完整重播。重播不重新合成，也不再寫一則記憶。「重試語音」則沿用原台詞重新合成。
 
 設定、聊天與收藏都從右鍵選單進入。關閉聊天只會收起視窗，完整退出請用「退出二乃」。麥克風／ASR 尚未提供。對嘴是實際 PCM 音量驅動的兩張嘴形，語音是完整句 WAV 接續，不是音素對嘴或原生音訊串流。
+
+## Markdown 與手動圖片
+
+聊天工具列提供「圖片／粗體／斜體／預覽」，可以在游標位置交錯圖片、文字與標點。輸入與日文／中文字幕以 CommonMark 顯示標題、強調、清單、引用、程式碼、連結及圖片；HTML 只顯示為文字。斜體按鈕使用 `_斜體_`，完整的 `*摸頭*` 仍是原有動作指令。`Enter` 傳送、`Shift+Enter` 換行。
+
+完整 Markdown 與圖片處理使用兩個可選套件，不載入語音模型，也不在 UI 匯入時初始化 Pillow：
+
+```powershell
+python -m pip install -r desktop_pet/requirements-chat.txt
+```
+
+版本固定為 markdown-it-py 4.0.0、Pillow 11.1.0。未安裝時仍能開啟標準函式庫／Tk 的 `--no-voice` 介面，顯示 Markdown 原文；標準 8-bit、非交錯 PNG 可用基本載入方式。其他格式與縮圖使用明確載圖時才匯入的 Pillow。
+
+按「圖片」選取本機 PNG、JPEG、GIF 或 BMP；也可直接輸入本機 Markdown 圖片路徑，有空格時使用角括號：
+
+```markdown
+這兩張你喜歡哪個？
+![第一張](<C:/Pictures/example photo.jpg>)，我比較喜歡這個表情。
+![第二張](./pictures/example.png)
+```
+
+相對路徑以啟動時的工作目錄解析。網址圖片目前須先下載至本機再選取；程式不自動下載使用者或模型文字中的圖片網址。遺失、損壞、超量與不支援的來源都顯示錯誤並保留草稿。預覽與檔案選擇器本身不取消現有語音。
+
+每則最多 4 張，每張原檔最多 12 MB、4000 萬像素；送出前依方向資訊校正並縮至最長邊 1600 px、PNG 8 MB 內，GIF 只用第一格。背景處理完成才開始新的對話；只有圖片的訊息也可傳送。選取的圖片透過官方 CLI 的 `--image` 直接附上，圖片內文字視為不可信資料；模型不支援時明示錯誤，不切換模型或偷偷改成純文字。
+
+附件正規化後存在忽略的 `outputs/pet-shell-v1/state/attachments/<角色ID>/`，Markdown 改用內容雜湊編號，不將原始路徑或圖片 bytes 寫入事件／對話記憶。草稿與附件編號會保存，原始檔案移動後仍可恢復。只有這次明確引用的圖片會傳送，歷史圖片不自動重傳；手動附件與有 60 秒新鮮度的主動畫面觀察分開。日文格式化顯示必須與實際台詞相同，語音不讀 Markdown 標記、圖片位置或演出。
 
 ## 可選的本機語音
 
@@ -89,7 +116,7 @@ python tools/setup_voice.py --reuse-workspace 'E:/existing/TTS' --check
 | `desktop_pet/voice/` | 標準函式庫 facade、受控佇列、唯一自有 GPU worker、取消與資源門檻 |
 | `runtime/irodori_lowmem.py` | 從原工作台保留的自有低記憶體推論整合；非整包上游複本 |
 | `config/desktop_pet_*.json` | 外殼、行為、角色與語音設定 |
-| `desktop_pet/assets/` | 兩套 PNG atlas、逐格圖、manifest 與清理後的生成來源 |
+| `desktop_pet/assets/` | 三套 PNG atlas（Q 版 v1、像素 v2、像素 v3）、逐格圖、manifest 與清理後的生成來源 |
 | `docs/research/` | 歷史選型／素材來源研究；不是現版本測試結果 |
 
 對話路徑為 UI → ConversationController → AgentService → 官方 `codex exec` → 結構化日文／字幕／演出；可選語音再經 VoiceService → 自有 Irodori worker → 有官方浮水印的 WAV → Windows 播放。`runtime/` 的小量自有程式與 [tts-workbench](https://github.com/danny0926/tts-workbench) 有共同來源，各儲存庫可獨立運作；訓練、資料處理與評聽工具位於工作台。
@@ -97,6 +124,14 @@ python tools/setup_voice.py --reuse-workspace 'E:/existing/TTS' --check
 ## 本機資料與隱私
 
 `outputs/`、模型、虛擬環境與 `*.local.json` 都被忽略。外殼偏好／未送出的草稿在 `outputs/pet-shell-v1/state/window.json`，最後回覆與語音收藏也在該 state 目錄。對話與明確儲存的記憶在 `outputs/pet-agent-v1/state/` 的 SQLite；操作／回覆事件與合成結果也僅保留在本機 outputs。收藏是原 WAV 的位元相同副本；取消收藏不會自動刪除檔案。
+
+### 對話與記憶
+
+在聊天視窗按「對話與記憶」，或從右鍵選單開啟，可查看歷史並管理「明確保存的重要記憶」。歷史頁以每頁 20 筆紀錄提供「較舊／較新」翻頁；重新啟動聊天時，畫面先恢復最近 30 筆，較舊紀錄仍可從歷史頁讀取。可在視窗中明確新增／刪除記憶，也可用既有的「記住：…」或 `/remember …` 指令新增。
+
+對話與記憶存在本機 SQLite，依 `character_id` 和 `conversation_id` 分開；只有共用同一組識別碼的角色與對話才會讀到彼此的紀錄。聊天使用程式自己的記憶，不會續接 Codex CLI 原生對話。模型每次只取有界的近期脈絡（最近 8 輪、最多 5,000 字元），不會把整本歷史都送入提示。`retain_turns_per_conversation: 0` 表示從目前設定起不自動裁剪對話紀錄；過去已被舊設定裁掉的紀錄無法重建。模型近期脈絡仍有上限。
+
+原始私人素材、對話原文與圖片附件留在 Git 忽略的本機路徑，不提交到儲存庫。杏山和紗、錦木千束的調查文件是供未來角色扮演設計參考的來源與人物摘要，尚未安裝成可選 persona 或聲音。程式的識別隔離能力是通用機制，不代表介面已提供三個可選角色。
 
 角色設定預設允許偶爾看目前視窗，可在「看畫面與小動作…」關閉，或把 `desktop_pet_app.json` 的 `screen_observation_enabled` 設為 `false`。此功能會把當次畫面交給 Codex 服務判讀；畫面中的指令視為不可信資料，不能改變角色任務或工具限制。不連續擷取、不進行本機 OCR，PNG 不寫入事件紀錄。顯式 `--screenshot` 開發參數會在指定路徑保留 PNG，請不要加入 Git。
 
@@ -112,7 +147,7 @@ python -m desktop_pet.voice --help
 python tools/setup_voice.py --check
 ```
 
-以改動範圍選擇既有 `unittest` 模組。`voice/test_loading_contracts.py` 與 `voice/test_adapter_loading.py` 需要選擇性 ML 依賴／個人模型；未設定時會略過。`--smoke` 會啟動實際 GUI，僅在沒有需要保留的桌寵執行個體、且有互動桌面時主動執行。此次匯出未重跑 GUI、實際對話或語音。
+以改動範圍選擇既有 `unittest` 模組。`voice/test_loading_contracts.py` 與 `voice/test_adapter_loading.py` 需要選擇性 ML 依賴／個人模型；未設定時會略過。`--smoke` 會啟動實際 GUI，僅在沒有需要保留的桌寵執行個體、且有互動桌面時主動執行。初始拆分匯出時曾記錄尚未重跑 GUI、實際對話或語音；後續已完成原生預覽、實際圖片模型對話與語音載入。此處保留的是初始匯出當時的歷史狀態。
 
 ## 視線與主動對話
 

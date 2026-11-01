@@ -7,12 +7,16 @@ import json
 import math
 from pathlib import Path
 import queue
+import re
+import threading
 import time
 import tkinter as tk
-from tkinter import ttk
+from tkinter import filedialog, ttk
 import traceback
 
 from .agent.actions import UserAction, format_user_action, parse_user_action
+from .attachments import AttachmentStore, MAX_IMAGES
+from .markdown_chat import MarkdownRenderer, image_references
 from .shell.controller import ConversationController
 from .shell.behavior import BehaviorBridge
 from .shell.carry import CarryMotion
@@ -21,6 +25,7 @@ from .shell.interaction import HeadpatGesture, head_hit
 from desktop_pet.behavior import BusyState, MotionState, ObservationSource, ProactiveEventKind
 from .shell.playback import WavePlayer
 from .shell.recovery import load_last_reply, store_last_reply
+from .shell.history import CharacterSession
 from .shell.replay import ReplayStore
 from .shell.resources import resource_details, resource_issue, resource_status
 from .shell.sprites import EXPRESSION_ANIMATION, SpriteAtlas
@@ -54,6 +59,10 @@ class PetApplication:
                             "idle_actions": True, "return_after_idle_seconds": 180}
         self.position = None
         self._draft_text = ""
+        self._attachments = None
+        self._markdown_renderer = None
+        self._composer_job = None
+        self.markdown_preview = None
         if self.state_path.is_file():
             try:
                 saved = json.loads(self.state_path.read_text(encoding="utf-8-sig"))
@@ -75,6 +84,11 @@ class PetApplication:
         self.transcript = None
         self.input_box = None
         self._transcript_parts: list[tuple] = []
+        self._session_history_count = 0
+        self.history_window = None
+        self._history_text = None
+        self._history_facts = None
+        self._history_input = None
         self.voice_library = None
         self._voice_library_list = None
         self._voice_library_ids: list[str] = []
@@ -209,9 +223,13 @@ class PetApplication:
         else:
             self._move(*self.position)
         self.controller = ConversationController(config, self.events.put)
+        self.session = CharacterSession(config, config["agent_config"], config["agent_data_dir"],
+                                        config.get("conversation_id", "desktop-default"))
         self._build_menu()
-        if not smoke and config.get("restore_last_reply_on_start", True):
-            self._restore_last_reply()
+        if not smoke:
+            self._restore_session_history()
+            if config.get("restore_last_reply_on_start", True):
+                self._restore_last_reply()
         self._log("started", snapshot=self.snapshot())
         root.after(35, self._tick)
         root.after(2000, self._keep_on_screen)
@@ -275,7 +293,8 @@ class PetApplication:
                 "screen_enabled": self.screen_enabled_var.get(), "screen_frequency": self.screen_frequency_var.get(),
                 "screen_scope": self.screen_scope_var.get(), "idle_actions": self.idle_actions_var.get(),
                 "return_after_idle_seconds": self.return_idle_var.get(),
-                "chat_draft": self._chat_draft()}
+                "chat_draft": self._chat_draft(),
+                "chat_draft_image_ids": list(dict.fromkeys(re.findall(r"attachment:([a-f0-9]{64})", self._chat_draft())))}
         temporary = self.state_path.with_suffix(".part")
         temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         temporary.replace(self.state_path)
@@ -399,6 +418,7 @@ class PetApplication:
     def _build_menu(self):
         self.menu = tk.Menu(self.root, tearoff=False, font=("Microsoft JhengHei UI", 10), bg=BG, fg=INK)
         self.menu.add_command(label="和二乃聊天", command=self.open_chat)
+        self.menu.add_command(label="對話與記憶", command=self.open_session_history)
         self.menu.add_command(label=self.seat_button_var.get(), command=self.toggle_seated)
         self._seat_menu_index = self.menu.index("end")
         self.interaction_menu = tk.Menu(self.menu, tearoff=False, font=("Microsoft JhengHei UI", 10), bg=BG, fg=INK)
@@ -495,7 +515,8 @@ class PetApplication:
         self._last_reply_profile = value["profile"]
         self._turn_complete = True
         self.profile_var.set(value["profile"])
-        if value.get("input_text"):
+        restored_ids = {part[3] for part in self._transcript_parts if len(part) > 3 and part[0] == "reply"}
+        if self._session_history_count == 0 and value.get("input_text"):
             action = parse_user_action(value["input_text"])
             if action:
                 self._transcript_parts.append(("action", self._action_speaker(action), action.description))
@@ -504,12 +525,23 @@ class PetApplication:
         if not self.replays.for_reply(self._reply["turn_id"]):
             self.replays.add_reply(self._reply, self._reply["turn_id"], profile=value["profile"],
                                    created_at=value.get("source_time"))
-        self._transcript_parts.append(("reply", "二乃", self._reply["speech_text_ja"], self._reply["turn_id"]))
-        if self._reply.get("subtitle_zh"):
-            self._transcript_parts.append(("subtitle", "", self._reply["subtitle_zh"]))
+        if self._reply["turn_id"] not in restored_ids and self._session_history_count == 0:
+            self._transcript_parts.append(("reply", self.session.display_name,
+                                           self._reply.get("display_text_ja") or self._reply["speech_text_ja"],
+                                           self._reply["turn_id"]))
+            if self._reply.get("subtitle_zh"):
+                self._transcript_parts.append(("subtitle", "", self._reply["subtitle_zh"]))
         self.status.set("已保留上一則回覆；可重播原音，或按「重試語音」。")
         self._update_retry_actions()
         self._log("reply_restored", agent_turn_id=self._reply["turn_id"], provider_mode=self._reply["provider_mode"])
+
+    def _restore_session_history(self):
+        info = self.session.session_info()
+        self._session_history_count = int(info["history_count"])
+        offset = max(0, self._session_history_count - 30)
+        self._transcript_parts.extend(self.session.load_history_parts(limit=30, offset=offset))
+        if self._transcript_parts:
+            self._render_transcript()
 
     def show_menu(self, x: int, y: int):
         try:
@@ -552,8 +584,8 @@ class PetApplication:
         window.title("二乃 · 聊天")
         window.configure(bg=BG)
         window.attributes("-topmost", self.topmost_var.get())
-        window.minsize(400, 430)
-        window.protocol("WM_DELETE_WINDOW", window.withdraw)
+        window.minsize(440, 550)
+        window.protocol("WM_DELETE_WINDOW", self._hide_chat)
         window.bind("<Escape>", lambda event: self.stop())
         window.rowconfigure(1, weight=1)
         window.columnconfigure(0, weight=1)
@@ -561,12 +593,13 @@ class PetApplication:
         header.grid(row=0, column=0, sticky="ew")
         header.columnconfigure(0, weight=1)
         ttk.Label(header, text="二乃", font=("Microsoft JhengHei UI", 19, "bold"), style="Pet.TLabel").grid(row=0, column=0, sticky="w")
-        ttk.Label(header, text="日文對話 · 陪你待一會", style="Muted.Pet.TLabel").grid(row=1, column=0, sticky="w", pady=(2, 0))
-        ttk.Button(header, text="語音收藏", style="Action.Pet.TButton", command=self.open_voice_library).grid(row=0, column=1, rowspan=2, padx=(6, 0))
-        ttk.Button(header, text="設定", style="Pet.TButton", command=self.open_settings).grid(row=0, column=2, rowspan=2, padx=(6, 0))
+        ttk.Button(header, text="語音收藏", style="Action.Pet.TButton", command=self.open_voice_library).grid(row=0, column=1, padx=(6, 0))
+        ttk.Button(header, text="對話與記憶", style="Action.Pet.TButton", command=self.open_session_history).grid(row=0, column=2, padx=(6, 0))
+        ttk.Button(header, text="設定", style="Pet.TButton", command=self.open_settings).grid(row=0, column=3, padx=(6, 0))
+        ttk.Label(header, text="日文對話 · 陪你待一會", style="Muted.Pet.TLabel").grid(row=1, column=0, columnspan=4, sticky="w", pady=(2, 0))
         ttk.Button(header, textvariable=self.seat_button_var, style="Action.Pet.TButton",
-                   command=self.toggle_seated).grid(row=2, column=2, sticky="e", pady=(8, 0))
-        ttk.Label(header, text="摸頭部互動 · 拖身體移動\nShift 拖任意處", style="Muted.Pet.TLabel").grid(row=2, column=0, columnspan=2, sticky="w", pady=(8, 0))
+                   command=self.toggle_seated).grid(row=2, column=3, sticky="e", pady=(8, 0))
+        ttk.Label(header, text="摸頭部互動 · 拖身體移動\nShift 拖任意處", style="Muted.Pet.TLabel").grid(row=2, column=0, columnspan=3, sticky="w", pady=(8, 0))
         body = ttk.Frame(window, style="Pet.TFrame", padding=(18, 0, 10, 0))
         body.grid(row=1, column=0, sticky="nsew")
         body.columnconfigure(0, weight=1)
@@ -588,11 +621,13 @@ class PetApplication:
             self.transcript.tag_configure(tag, **options)
         footer = ttk.Frame(window, style="Pet.TFrame", padding=(18, 7, 18, 16))
         footer.grid(row=2, column=0, sticky="ew")
-        footer.columnconfigure(0, weight=1)
+        for column in range(4):
+            footer.columnconfigure(column, weight=1, uniform="footer_actions")
         ttk.Label(footer, textvariable=self.status, wraplength=370, style="Muted.Pet.TLabel").grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 9))
         self.input_box = tk.Text(footer, height=3, wrap="word", relief="solid", borderwidth=1,
                                  bg="white", fg=INK, insertbackground=ACCENT, padx=10, pady=8,
-                                 highlightthickness=1, highlightbackground="#E6DCED", highlightcolor=ACCENT)
+                                 highlightthickness=1, highlightbackground="#E6DCED", highlightcolor=ACCENT,
+                                 undo=True, maxundo=80)
         self.input_box.grid(row=1, column=0, columnspan=4, sticky="ew")
         self.input_box.bind("<Return>", self._input_return)
         self.input_box.bind("<KeyPress>", self._input_activity, add="+")
@@ -600,8 +635,17 @@ class PetApplication:
         self.input_box.bind("<FocusOut>", lambda event: self._input_focus(False))
         if self._draft_text:
             self.input_box.insert("1.0", self._draft_text)
+        toolbar = ttk.Frame(footer, style="Pet.TFrame")
+        toolbar.grid(row=2, column=0, columnspan=4, sticky="ew", pady=(5, 0))
+        for column, (label, command) in enumerate((("圖片", self.choose_chat_images),
+                                                   ("粗體", lambda: self._wrap_markdown("**")),
+                                                   ("斜體", lambda: self._wrap_markdown("_")),
+                                                   ("預覽", self.preview_chat))):
+            toolbar.columnconfigure(column, weight=1, uniform="markdown")
+            ttk.Button(toolbar, text=label, width=1, style="Action.Pet.TButton", command=command).grid(
+                row=0, column=column, sticky="ew", padx=(0, 2))
         shortcuts = ttk.Frame(footer, style="Pet.TFrame")
-        shortcuts.grid(row=2, column=0, columnspan=4, sticky="ew", pady=(6, 0))
+        shortcuts.grid(row=3, column=0, columnspan=4, sticky="ew", pady=(6, 0))
         for column in range(4):
             shortcuts.columnconfigure(column, weight=1, uniform="shortcut")
         for label, kind, description in (("摸頭", "headpat", "輕輕摸頭"), ("戳臉", "cheek_poke", "輕輕戳臉"),
@@ -609,25 +653,27 @@ class PetApplication:
             ttk.Button(shortcuts, text=label, width=1, style="Action.Pet.TButton",
                        command=lambda k=kind, d=description: self._menu_action(k, d)).grid(row=0, column=("headpat", "cheek_poke", "wave").index(kind), sticky="ew", padx=(0, 2))
         ttk.Button(shortcuts, text="自訂動作", width=1, style="Action.Pet.TButton", command=self._custom_action).grid(row=0, column=3, sticky="ew")
-        ttk.Checkbutton(footer, text="中文字幕", variable=self.subtitle_var, style="Pet.TCheckbutton", command=self._subtitles_changed).grid(row=3, column=0, sticky="w", pady=(8, 0))
-        retry = ttk.Button(footer, text="重試語音", command=self.retry_voice, style="Pet.TButton")
-        retry.grid(row=3, column=1, padx=(4, 4), pady=(8, 0))
+        ttk.Checkbutton(footer, text="中文字幕", variable=self.subtitle_var, style="Pet.TCheckbutton", command=self._subtitles_changed).grid(row=4, column=0, sticky="w", pady=(8, 0))
+        retry = ttk.Button(footer, text="重試語音", width=1, command=self.retry_voice, style="Pet.TButton")
+        retry.grid(row=4, column=1, padx=(4, 4), pady=(8, 0))
         self._retry_buttons.append(retry)
-        ttk.Button(footer, text="停止", command=self.stop, style="Pet.TButton").grid(row=3, column=2, padx=(0, 4), pady=(8, 0))
-        ttk.Button(footer, text="傳送", command=self.send_input, style="Accent.Pet.TButton").grid(row=3, column=3, pady=(8, 0))
+        ttk.Button(footer, text="停止", width=1, command=self.stop, style="Pet.TButton").grid(row=4, column=2, padx=(0, 4), pady=(8, 0))
+        ttk.Button(footer, text="傳送", width=1, command=self.send_input, style="Accent.Pet.TButton").grid(row=4, column=3, pady=(8, 0))
+        ttk.Label(footer, text="Markdown · Enter 傳送，Shift＋Enter 換行\n每則最多4張圖片，單張12MB內。",
+                  wraplength=460, style="Muted.Pet.TLabel").grid(row=5, column=0, columnspan=4, sticky="w", pady=(7, 0))
         self._update_retry_actions()
         if not self._transcript_parts:
             self._append("notice", "", "輸入中文或日文，二乃會用日文回覆。\n動作可輸入（摸頭）、*輕輕拍肩* 或 /action 你的動作。\n摸頭可直接按住角色頭部；按身體拖曳，Shift＋拖曳可從任何位置移動。\nEnter 傳送，Shift＋Enter 換行。")
         else:
             self._render_transcript()
-        window.geometry("440x540+0+0")
+        window.geometry("500x700+0+0")
         window.update_idletasks()
         px, py, pr, pb = window_rect(self.native.hwnd)
         left, top, right, bottom = work_area(px, py, self.width, self.height)
-        x = px - 456 if px - 456 >= left else pr + 16
-        x, y = clamp_position(x, pb - 540, 440, 540)
+        x = px - 516 if px - 516 >= left else pr + 16
+        x, y = clamp_position(x, pb - 700, 500, 700)
         window.deiconify()
-        move_window(hwnd_of(window), x, y, 440, 540, topmost=self.topmost_var.get())
+        move_window(hwnd_of(window), x, y, 500, 700, topmost=self.topmost_var.get())
         window.lift()
         self.input_box.focus_set()
         self._log("chat_opened")
@@ -638,13 +684,265 @@ class PetApplication:
         self.send_input()
         return "break"
 
+    def open_session_history(self):
+        """Open local history and explicit fact controls without touching playback."""
+        if self.history_window and self.history_window.winfo_exists():
+            self.history_window.deiconify()
+            self.history_window.lift()
+            self._refresh_session_history()
+            return
+        window = self.history_window = tk.Toplevel(self.root)
+        window.title(f"{self.session.display_name} · 對話與記憶")
+        window.configure(bg=BG)
+        window.attributes("-topmost", self.topmost_var.get())
+        window.geometry("760x620")
+        window.minsize(600, 460)
+        window.rowconfigure(1, weight=1)
+        window.columnconfigure(0, weight=3)
+        window.columnconfigure(1, weight=2)
+        ttk.Label(window, text="已保存的對話", style="Pet.TLabel",
+                  font=("Microsoft JhengHei UI", 12, "bold")).grid(row=0, column=0, sticky="w", padx=14, pady=10)
+        ttk.Label(window, text="明確保存的重要記憶", style="Pet.TLabel",
+                  font=("Microsoft JhengHei UI", 12, "bold")).grid(row=0, column=1, sticky="w", padx=14, pady=10)
+        history_frame = ttk.Frame(window, style="Pet.TFrame", padding=(12, 0, 6, 10))
+        history_frame.grid(row=1, column=0, sticky="nsew")
+        history_frame.rowconfigure(0, weight=1)
+        history_frame.columnconfigure(0, weight=1)
+        self._history_text = tk.Text(history_frame, wrap="word", relief="flat", bg=BG,
+                                     fg=INK, padx=7, pady=7, state="disabled")
+        history_scroll = ttk.Scrollbar(history_frame, command=self._history_text.yview)
+        self._history_text.configure(yscrollcommand=history_scroll.set)
+        self._history_text.grid(row=0, column=0, sticky="nsew")
+        history_scroll.grid(row=0, column=1, sticky="ns")
+        page = ttk.Frame(history_frame, style="Pet.TFrame")
+        page.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        self._history_older = ttk.Button(page, text="較舊", command=lambda: self._change_history_page(-20))
+        self._history_newer = ttk.Button(page, text="較新", command=lambda: self._change_history_page(20))
+        self._history_older.pack(side="left")
+        self._history_newer.pack(side="left", padx=6)
+        self._history_page_label = ttk.Label(page, text="", style="Muted.Pet.TLabel")
+        self._history_page_label.pack(side="right")
+        facts = ttk.Frame(window, style="Pet.TFrame", padding=(6, 0, 12, 10))
+        facts.grid(row=1, column=1, sticky="nsew")
+        facts.rowconfigure(0, weight=1)
+        facts.columnconfigure(0, weight=1)
+        self._history_facts = tk.Listbox(facts, activestyle="dotbox", bg="white", fg=INK,
+                                         relief="solid", borderwidth=1, selectmode="browse")
+        self._history_facts.grid(row=0, column=0, sticky="nsew")
+        fact_scroll = ttk.Scrollbar(facts, command=self._history_facts.yview)
+        self._history_facts.configure(yscrollcommand=fact_scroll.set)
+        fact_scroll.grid(row=0, column=1, sticky="ns")
+        self._history_fact_ids = []
+        add_row = ttk.Frame(facts, style="Pet.TFrame")
+        add_row.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        self._history_input = ttk.Entry(add_row)
+        self._history_input.pack(fill="x", pady=(0, 6))
+        ttk.Button(add_row, text="明確保存為重要記憶", command=self._add_session_fact).pack(fill="x")
+        ttk.Button(add_row, text="刪除選取記憶", command=self._delete_session_fact).pack(fill="x", pady=(6, 0))
+        window.protocol("WM_DELETE_WINDOW", window.withdraw)
+        self._history_offset = max(0, int(self.session.session_info()["history_count"]) - 20)
+        self._refresh_session_history()
+
+    def _refresh_session_history(self):
+        if not self.history_window or not self.history_window.winfo_exists():
+            return
+        info = self.session.session_info()
+        total = int(info["history_count"])
+        page_size = 20
+        self._history_offset = min(max(0, self._history_offset), max(0, total - page_size))
+        records = self.session.load_history(limit=page_size, offset=self._history_offset)
+        widget = self._history_text
+        widget.configure(state="normal")
+        widget.delete("1.0", "end")
+        renderer = MarkdownRenderer(widget, self._attachment_store().thumbnail)
+        for record in records:
+            if record["kind"] == "manual" and record.get("input_text"):
+                action = parse_user_action(record["input_text"])
+                speaker = self._action_speaker(action) if action else "你"
+                text = action.description if action else record["input_text"]
+                widget.insert("end", speaker + "\n", "name")
+                renderer.append(text, "user", allow_images=True)
+            reply = record["reply"]
+            text = (reply.get("display_text_ja") or reply.get("speech_text_ja")
+                    if record["kind"] == "manual" else record.get("heard_text"))
+            if text:
+                widget.insert("end", self.session.display_name + "\n", "name")
+                renderer.append(text, "reply")
+            if record["kind"] == "manual" and reply.get("subtitle_zh"):
+                renderer.append(reply["subtitle_zh"], "subtitle")
+            widget.insert("end", "\n")
+        if not records:
+            widget.insert("end", "目前沒有已保存的對話。", "notice")
+        widget.configure(state="disabled")
+        start = self._history_offset + 1 if total else 0
+        end = min(total, self._history_offset + len(records))
+        self._history_page_label.configure(text=f"{start}–{end} / {total}")
+        self._history_older.configure(state="normal" if self._history_offset > 0 else "disabled")
+        self._history_newer.configure(state="normal" if self._history_offset + page_size < total else "disabled")
+        self._history_facts.delete(0, "end")
+        self._history_fact_ids = []
+        for fact in self.session.list_facts():
+            self._history_fact_ids.append(fact["id"])
+            self._history_facts.insert("end", f"[{fact['kind']}] {fact['body']}")
+
+    def _change_history_page(self, delta: int):
+        self._history_offset += delta
+        self._refresh_session_history()
+
+    def _add_session_fact(self):
+        text = self._history_input.get().strip()
+        if not text:
+            return
+        try:
+            self.session.remember(text)
+        except ValueError as exc:
+            self.status.set(str(exc))
+            return
+        self._history_input.delete(0, "end")
+        self._refresh_session_history()
+
+    def _delete_session_fact(self):
+        selected = self._history_facts.curselection()
+        if not selected:
+            return
+        self.session.delete_fact(self._history_fact_ids[selected[0]])
+        self._refresh_session_history()
+
     def send_input(self):
         if self.input_box:
-            text = self.input_box.get("1.0", "end").strip()
+            text = self.input_box.get("1.0", "end-1c")
+            try:
+                if image_references(text):
+                    self._prepare_composer("send", text)
+                    return
+            except ValueError as exc:
+                self.status.set(str(exc))
+                return
             if self.send_text(text):
-                self.input_box.delete("1.0", "end")
-                self._draft_text = ""
-                self._save()
+                self._clear_sent_draft(text)
+
+    def _hide_chat(self):
+        self._save()
+        self.chat.withdraw()
+
+    def _attachment_store(self) -> AttachmentStore:
+        if getattr(self, "_attachments", None) is None:
+            character_id = "nino"
+            try:
+                path = Path(self.config["agent_config"])
+                character_id = json.loads(path.read_text(encoding="utf-8-sig")).get("character_id", character_id)
+            except (OSError, KeyError, ValueError, TypeError):
+                pass
+            character_id = re.sub(r"[^A-Za-z0-9_.-]", "_", str(character_id))[:80] or "nino"
+            self._attachments = AttachmentStore(self.state_dir / "attachments" / character_id)
+        return self._attachments
+
+    def _composer_presentation(self):
+        # These controls inspect a draft. They never cancel existing speech,
+        # including a screen-based proactive reply that is already playing.
+        if hasattr(self, "behavior"):
+            self.behavior.note_presentation_interaction(time.monotonic())
+
+    def _wrap_markdown(self, marker):
+        box = self.input_box
+        if not box:
+            return
+        try:
+            start, end = box.index("sel.first"), box.index("sel.last")
+        except tk.TclError:
+            start = end = box.index("insert")
+        content = box.get(start, end)
+        box.edit_separator()
+        box.delete(start, end)
+        box.insert(start, marker + content + marker)
+        box.mark_set("insert", f"{start}+{len(marker) + len(content)}c")
+        box.edit_separator()
+        self._input_activity()
+        self._save()
+        box.focus_set()
+
+    def choose_chat_images(self):
+        self._composer_presentation()
+        paths = filedialog.askopenfilenames(parent=self.chat, title="選擇要讓二乃看的圖片（最多 4 張）",
+                                            filetypes=(("圖片", "*.png *.jpg *.jpeg *.gif *.bmp"),))
+        if paths:
+            self._insert_chat_images(paths)
+
+    def _insert_chat_images(self, paths):
+        source = self._chat_draft()
+        try:
+            if len(image_references(source)) + len(paths) > MAX_IMAGES:
+                raise ValueError("每則訊息最多 4 張圖片；草稿已保留。")
+        except ValueError as exc:
+            self.status.set(str(exc))
+            return
+        # A Tk mark follows any typing while the background decoder runs.
+        mark = "chat_image_insert"
+        self.input_box.mark_set(mark, "insert")
+        self.input_box.mark_gravity(mark, "right")
+        self._prepare_composer("insert", source, paths=tuple(paths), mark=mark)
+
+    def preview_chat(self):
+        self._composer_presentation()
+        self._prepare_composer("preview", self._chat_draft())
+
+    def _prepare_composer(self, mode, source, *, paths=(), mark=None):
+        if self.closing or getattr(self, "_composer_job", None):
+            self.status.set("圖片正在載入，草稿仍可編輯。")
+            return
+        job = object()
+        self._composer_job = job
+        store = self._attachment_store()
+        self.status.set("正在本機準備圖片與預覽…")
+
+        def prepare():
+            try:
+                if mode == "insert":
+                    images = tuple(store.import_file(path) for path in paths)
+                    prepared = "\n".join(f"![圖片 {index}]({image.reference})" for index, image in enumerate(images, 1))
+                else:
+                    prepared, images = store.prepare_markdown(source)
+                self.events.put({"type": "composer_ready", "job": job, "mode": mode,
+                                 "original": source, "source": prepared, "images": images, "mark": mark})
+            except ValueError as exc:
+                self.events.put({"type": "composer_error", "job": job, "error": str(exc)})
+            except Exception:
+                self.events.put({"type": "composer_error", "job": job,
+                                 "error": "無法準備圖片；請重新選擇本機圖片，草稿已保留。"})
+        threading.Thread(target=prepare, name="pet-user-attachments", daemon=True).start()
+
+    def _clear_sent_draft(self, expected):
+        if self.input_box and self.input_box.winfo_exists() and self._chat_draft() == expected:
+            self.input_box.delete("1.0", "end")
+            self._draft_text = ""
+        self._save()
+
+    def _show_markdown_preview(self, source):
+        previous = getattr(self, "markdown_preview", None)
+        if previous and previous.winfo_exists():
+            previous.destroy()
+        window = self.markdown_preview = tk.Toplevel(self.chat or self.root)
+        window.title("Markdown 預覽 · 尚未傳送")
+        window.configure(bg=BG)
+        window.geometry("500x520")
+        window.rowconfigure(1, weight=1)
+        window.columnconfigure(0, weight=1)
+        ttk.Label(window, text="草稿預覽 · 按傳送才會讓二乃看到圖片", style="Muted.Pet.TLabel").grid(
+            row=0, column=0, columnspan=2, sticky="w", padx=14, pady=10)
+        text = tk.Text(window, wrap="word", bg=BG, fg=INK, padx=14, pady=10, relief="flat")
+        text.grid(row=1, column=0, sticky="nsew")
+        scrollbar = ttk.Scrollbar(window, command=text.yview)
+        scrollbar.grid(row=1, column=1, sticky="ns")
+        text.configure(yscrollcommand=scrollbar.set)
+        renderer = MarkdownRenderer(text, self._attachment_store().thumbnail)
+        renderer.append(source, allow_images=True)
+        text.configure(state="disabled")
+        window._markdown_renderer = renderer  # Keep the Tk image references.
+        buttons = ttk.Frame(window, style="Pet.TFrame", padding=10)
+        buttons.grid(row=2, column=0, columnspan=2, sticky="ew")
+        ttk.Button(buttons, text="繼續編輯", command=window.destroy, style="Pet.TButton").pack(side="left")
+        ttk.Button(buttons, text="傳送目前草稿", command=self.send_input, style="Accent.Pet.TButton").pack(side="right")
+        window.bind("<Escape>", lambda event: (window.destroy(), "break")[-1])
 
     def _chat_draft(self) -> str:
         if self.input_box and self.input_box.winfo_exists():
@@ -698,20 +996,30 @@ class PetApplication:
             self._last_touch_reply_at = now
         return True
 
-    def send_text(self, text: str) -> bool:
+    def send_text(self, text: str, *, images=()) -> bool:
         text = text.strip()
         if not text or self.closing:
             return False
         if len(text) > 4000:
             self.status.set("這段有點長，請縮短至 4000 字以內。")
             return False
-        action = parse_user_action(text)
+        try:
+            references = image_references(text)
+            if references and not images:
+                self._prepare_composer("send", text)
+                return False
+            if [ref.source for ref in references] != [image.reference for image in images]:
+                raise ValueError("圖片附件與訊息不一致；草稿已保留，請重新選擇圖片。")
+        except ValueError as exc:
+            self.status.set(str(exc))
+            return False
+        action = parse_user_action(text) if not images else None
         if action:
             return self._send_action(action, input_text=text)
-        self._start_turn(text)
+        self._start_turn(text, images=images)
         return True
 
-    def _start_turn(self, text: str, *, action: UserAction | None = None, touch=False, record=True):
+    def _start_turn(self, text: str, *, action: UserAction | None = None, touch=False, record=True, images=()):
         if not touch:
             self.stop(silent=True)
         self._turn_is_proactive = False
@@ -724,7 +1032,8 @@ class PetApplication:
         self._turn_profile = self.profile_var.get()
         self._current_input_text = text
         self._synthesis_pending = True
-        self.turn_id = self.controller.start(text, speak=self._turn_speak, profile=self._turn_profile)
+        visual = {"images": tuple(images)} if images else {}
+        self.turn_id = self.controller.start(text, speak=self._turn_speak, profile=self._turn_profile, **visual)
         if action and record:
             self._record_user_action(action, input_text=text if action.source == "text" else None)
         elif action is None:
@@ -798,6 +1107,9 @@ class PetApplication:
             return
         self.transcript.configure(state="normal")
         self.transcript.delete("1.0", "end")
+        if getattr(self, "_markdown_renderer", None) is None or self._markdown_renderer.widget is not self.transcript:
+            self._markdown_renderer = MarkdownRenderer(self.transcript, self._attachment_store().thumbnail)
+        self._markdown_renderer.clear()
         for tag in self.transcript.tag_names():
             if tag.startswith(("replay_", "favorite_")):
                 self.transcript.tag_delete(tag)
@@ -807,7 +1119,10 @@ class PetApplication:
                 continue
             if speaker:
                 self.transcript.insert("end", speaker + "\n", "name")
-            self.transcript.insert("end", text + "\n", kind)
+            if kind in {"user", "reply", "subtitle"}:
+                self._markdown_renderer.append(text, kind, allow_images=kind == "user")
+            else:
+                self.transcript.insert("end", text + "\n", kind)
             if kind == "reply" and len(part) > 3 and part[3]:
                 record = self.replays.for_reply(part[3])
                 available = bool(record and record["available_pieces"])
@@ -1237,6 +1552,31 @@ class PetApplication:
 
     def _handle_event(self, event: dict):
         kind = event["type"]
+        if kind in {"composer_ready", "composer_error"}:
+            if event["job"] is not getattr(self, "_composer_job", None) or self.closing:
+                return
+            self._composer_job = None
+            if kind == "composer_error":
+                self.status.set(event["error"])
+                return
+            mode, source = event["mode"], event["source"]
+            if mode == "insert":
+                self.input_box.edit_separator()
+                self.input_box.insert(event["mark"], source)
+                self.input_box.mark_unset(event["mark"])
+                self.input_box.edit_separator()
+                self._save()
+                self.status.set("圖片已加入草稿；可穿插文字、標點，再按預覽或傳送。")
+            elif mode == "preview":
+                self._show_markdown_preview(source)
+                self.status.set("這是草稿預覽，尚未傳送。")
+            elif mode == "send":
+                if self.send_text(source, images=event["images"]):
+                    self._clear_sent_draft(event["original"])
+                    preview = getattr(self, "markdown_preview", None)
+                    if preview and preview.winfo_exists():
+                        preview.destroy()
+            return
         if kind == "proactive_draining":
             self._log("proactive_draining", turn_id=event.get("turn_id"), reason=event.get("reason"))
             if event.get("turn_id") == self.turn_id and self._turn_is_proactive:
@@ -1348,7 +1688,9 @@ class PetApplication:
                 self._last_reply_profile = self._turn_profile
                 try:
                     store_last_reply(self.state_dir / "last-reply.json", reply,
-                                     input_text=self._current_input_text, profile=self._turn_profile)
+                                     input_text=self._current_input_text, profile=self._turn_profile,
+                                     character_id=self.session.character_id,
+                                     conversation_id=self.config.get("conversation_id", "desktop-default"))
                 except OSError as exc:
                     self._log("reply_restore_cache_error", error=str(exc))
                 self._update_retry_actions()
@@ -1359,7 +1701,7 @@ class PetApplication:
                 self._show_bubble(reply)
             elif self._turn_is_touch:
                 self._show_bubble(reply)
-            self._append("reply", name, reply["speech_text_ja"], reply["turn_id"])
+            self._append("reply", name, reply.get("display_text_ja") or reply["speech_text_ja"], reply["turn_id"])
             if reply.get("subtitle_zh"):
                 self._append("subtitle", "", reply["subtitle_zh"])
             self._reply_animation(reply, time.monotonic())
@@ -1367,7 +1709,9 @@ class PetApplication:
             self._motion = reply.get("motion", "idle")
             self._motion_start = time.monotonic()
             self.controller.record_delivery(self.turn_id, "", "interrupted")
-            self._log("proactive_reply" if proactive else "reply", turn_id=self.turn_id, reply=reply, profile=self._turn_profile)
+            self._log("proactive_reply" if proactive else "reply", turn_id=self.turn_id, reply=reply,
+                      profile=self._turn_profile, character_id=self.session.character_id,
+                      conversation_id=self.config.get("conversation_id", "desktop-default"))
         elif kind == "voice_result":
             self._log("voice_result", turn_id=self.turn_id, agent_turn_id=event.get("agent_turn_id"), result=event["result"])
             try:

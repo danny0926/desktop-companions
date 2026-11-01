@@ -197,7 +197,7 @@ class CompanionContracts(unittest.TestCase):
         self.assertTrue({"laughing", "smug", "worried", "irritated", "curious", "sleepy", "sad", "surprised"} <= expressions)
         self.assertTrue({"wave", "stretch", "yawn", "adjust_ribbon"} <= motions)
         self.assertEqual(set(reply_schema()["properties"]),
-                         {"speech_text_ja", "subtitle_zh", "attitude", "intensity", "delivery"})
+                         {"speech_text_ja", "subtitle_zh", "display_text_ja", "attitude", "intensity", "delivery"})
 
     def test_pack_exposes_real_actions_and_expressions(self):
         manifest = json.loads((ROOT / "desktop_pet/assets/nino-pixel-v2/manifest.json").read_text(encoding="utf-8-sig"))

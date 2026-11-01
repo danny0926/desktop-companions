@@ -91,6 +91,10 @@ def build_reply(
         raise ReplyFormatError("speech_text_ja must contain Japanese kana")
     if _CONTROL.search(text) or "```" in text:
         raise ReplyFormatError("speech_text_ja contains control fields or stage directions")
+    from desktop_pet.markdown_chat import visible_text
+    if (" ".join(visible_text(text).split()) != " ".join(text.split())
+            or re.search(r"(?:https?://|file:|attachment:|[A-Za-z]:[/\\]|(?:^|\s)\.{1,2}/)", text)):
+        raise ReplyFormatError("speech_text_ja must be plain speech without Markdown, image URLs or file paths")
     if any(ord(char) < 32 and char not in "\n\t" for char in text):
         raise ReplyFormatError("speech_text_ja contains control characters")
     attitude = value.get("attitude", "daily")
@@ -102,11 +106,14 @@ def build_reply(
             raise ReplyFormatError("subtitle_zh must be a short string or null")
         subtitle = subtitle.strip() or None
     acting = performance(attitude, intensity, delivery)
-    return AgentReply(
-        turn_id=turn_id, speech_text_ja=text, subtitle_zh=subtitle,
-        attitude=attitude, intensity=intensity, delivery=delivery,
-        provider_mode=provider_mode, **acting,
-    )
+    try:
+        return AgentReply(
+            turn_id=turn_id, speech_text_ja=text, subtitle_zh=subtitle,
+            attitude=attitude, intensity=intensity, delivery=delivery,
+            provider_mode=provider_mode, display_text_ja=value.get("display_text_ja"), **acting,
+        )
+    except ValueError as exc:
+        raise ReplyFormatError(str(exc)) from None
 
 
 def reply_schema(max_speech_chars: int = 260) -> dict[str, Any]:
@@ -116,10 +123,11 @@ def reply_schema(max_speech_chars: int = 260) -> dict[str, Any]:
         "properties": {
             "speech_text_ja": {"type": "string", "minLength": 1, "maxLength": max_speech_chars},
             "subtitle_zh": {"type": ["string", "null"]},
+            "display_text_ja": {"type": ["string", "null"], "maxLength": 1600},
             "attitude": {"type": "string", "enum": list(ATTITUDES)},
             "intensity": {"type": "string", "enum": list(INTENSITIES)},
             "delivery": {"type": "string", "enum": list(DELIVERIES)},
         },
-        "required": ["speech_text_ja", "subtitle_zh", "attitude", "intensity", "delivery"],
+        "required": ["speech_text_ja", "subtitle_zh", "display_text_ja", "attitude", "intensity", "delivery"],
         "additionalProperties": False,
     }

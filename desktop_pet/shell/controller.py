@@ -10,7 +10,7 @@ import time
 import uuid
 from typing import Any, Callable
 
-from desktop_pet.contracts import AgentReply, AgentRequest, VoiceRequest
+from desktop_pet.contracts import AgentReply, AgentRequest, ManualImage, VoiceRequest
 
 
 def speech_segments(text: str, limit: int = 80) -> list[str]:
@@ -54,6 +54,7 @@ class Turn:
     playback_active: bool = False
     draining: bool = False
     screen_observation: Any = None
+    images: tuple[ManualImage, ...] = ()
     cancelled: threading.Event = field(default_factory=threading.Event)
 
 
@@ -163,9 +164,10 @@ class ConversationController:
         if self.voice is not None and hasattr(self.voice, "set_profile"):
             self.voice.set_profile(profile)
 
-    def start(self, text: str, *, speak: bool = True, profile: str = "quality_40") -> str:
+    def start(self, text: str, *, speak: bool = True, profile: str = "quality_40",
+              images: tuple[ManualImage, ...] = ()) -> str:
         operation = uuid.uuid4().hex
-        return self._schedule(Turn(operation, text, speak, profile, agent_turn_id=operation))
+        return self._schedule(Turn(operation, text, speak, profile, agent_turn_id=operation, images=tuple(images)))
 
     def retry_voice(self, reply: AgentReply | dict, *, profile: str = "quality_40") -> str:
         if not isinstance(reply, AgentReply):
@@ -213,6 +215,7 @@ class ConversationController:
             if old:
                 old.cancelled.set()
                 old.screen_observation = None
+                old.images = ()
             self._active = turn
             self._pending = None if turn.replay_items is not None else turn
             self._operations[turn.turn_id] = turn.agent_turn_id
@@ -305,6 +308,7 @@ class ConversationController:
             if old:
                 old.cancelled.set()
                 old.screen_observation = None
+                old.images = ()
             self._active = self._pending = None
             self._condition.notify()
         self._cancel_voice(old.turn_id if old and old.replay_items is None else None)
@@ -422,7 +426,10 @@ class ConversationController:
                 elif turn.retry_reply is None:
                     agent = self._get_agent()
                     self._event(turn, "phase", value="thinking")
-                    reply = agent.generate_reply(AgentRequest(turn.agent_turn_id, turn.input_text, self.config["conversation_id"]))
+                    visual = {"images": turn.images} if turn.images else {}
+                    reply = agent.generate_reply(AgentRequest(turn.agent_turn_id, turn.input_text, self.config["conversation_id"]),
+                                                 **visual)
+                    turn.images = ()
                     if not self.current(turn.turn_id):
                         self.record_delivery(turn.turn_id, "", "discarded")
                         self.emit({"type": "stale_discarded", "turn_id": turn.turn_id, "stage": "agent"})
@@ -475,4 +482,5 @@ class ConversationController:
                 else:
                     self._event(turn, "error", error=f"{type(exc).__name__}: {exc}")
             finally:
+                turn.images = ()
                 turn.finished = True

@@ -197,6 +197,8 @@ class ReplayContracts(unittest.TestCase):
                                    see=lambda *args: None)
             app = fake_app()
             app.replays, app.transcript = store, text
+            app._markdown_renderer = SimpleNamespace(widget=text, clear=lambda: None,
+                                                      append=lambda *args, **kwargs: None)
             app.replay_record = clicked.append
             app._transcript_parts = [("reply", "二乃", "同じ台詞。", "one"),
                                      ("reply", "二乃", "同じ台詞。", "two"),
