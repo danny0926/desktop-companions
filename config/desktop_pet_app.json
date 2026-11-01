@@ -1,8 +1,9 @@
 {
   "schema": "desktop-pet-app-v1",
-  "sprite_manifest": "desktop_pet/assets/nino-pixel-v2/manifest.json",
-  "default_skin": "pixel_v2",
+  "sprite_manifest": "desktop_pet/assets/nino-pixel-v3/manifest.json",
+  "default_skin": "pixel_v3",
   "skins": {
+    "pixel_v3": "desktop_pet/assets/nino-pixel-v3/manifest.json",
     "pixel_v2": "desktop_pet/assets/nino-pixel-v2/manifest.json",
     "q_v1": "desktop_pet/assets/nino/manifest.json"
   },

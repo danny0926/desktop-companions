@@ -107,6 +107,7 @@ class MotionState(str, Enum):
     WALKING_DOWN = "walking_down"
     WALKING_UP = "walking_up"
     REST = "rest"
+    SEATED = "seated"
     SPEAKING = "speaking"
     DRAGGED = "dragged"
     PAUSED = "paused"
@@ -163,6 +164,7 @@ class ProactiveEventKind(str, Enum):
     RETURN_FROM_IDLE = "return_from_idle"
     FOCUS_BREAK = "focus_break"
     SCREEN_OBSERVATION = "screen_observation"
+    COMPANION_TOPIC = "companion_topic"
 
 
 @dataclass(frozen=True)

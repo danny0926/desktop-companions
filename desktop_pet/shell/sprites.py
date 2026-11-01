@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import base64
+from collections import OrderedDict
 import json
+import math
 from pathlib import Path
 import struct
 import tkinter as tk
@@ -17,13 +19,8 @@ EXPRESSION_ANIMATION = {
 }
 
 
-def color_key_png(path: Path) -> bytes:
-    """Binary alpha for Tk's Windows color-key compositor, without changing art.
-
-    Semi-transparent edge pixels otherwise blend with the chroma key and leave a
-    pink halo. Pixel art has hard edges; preserve RGB and threshold alpha only in
-    the in-memory display copy. The atlas and frame PNG files remain untouched.
-    """
+def _read_rgba(path: Path) -> tuple[int, int, bytes]:
+    """Read RGBA8 PNG pixels and apply binary alpha only to the display copy."""
     data = path.read_bytes()
     header = None
     payload = bytearray()
@@ -41,7 +38,7 @@ def color_key_png(path: Path) -> bytes:
         raise ValueError("The sprite manifest must use non-interlaced RGBA8 PNG frames.")
     raw, stride = zlib.decompress(payload), width * 4
     previous = bytearray(stride)
-    scanlines = bytearray()
+    pixels = bytearray()
     for row in range(height):
         start = row * (stride + 1)
         filter_type = raw[start]
@@ -67,10 +64,66 @@ def color_key_png(path: Path) -> bytes:
             current[index] = (current[index] + predictor) & 255
         previous = current[:]
         current[3::4] = bytes(255 if alpha >= 128 else 0 for alpha in current[3::4])
-        scanlines.extend(b"\0" + current)
+        pixels.extend(current)
+    return width, height, bytes(pixels)
+
+
+def _rgba_png(width: int, height: int, pixels: bytes) -> bytes:
+    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    stride = width * 4
+    scanlines = b"".join(b"\0" + pixels[start:start + stride] for start in range(0, len(pixels), stride))
     def chunk(kind, value):
         return struct.pack(">I", len(value)) + kind + value + struct.pack(">I", zlib.crc32(kind + value))
     return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(scanlines, 3)) + chunk(b"IEND", b"")
+
+
+def color_key_png(path: Path) -> bytes:
+    """Binary alpha for Tk's Windows color-key compositor, without changing art.
+
+    Semi-transparent edge pixels otherwise blend with the chroma key and leave a
+    pink halo. Pixel art has hard edges; preserve RGB and threshold alpha only in
+    the in-memory display copy. The atlas and frame PNG files remain untouched.
+    """
+    return _rgba_png(*_read_rgba(path))
+
+
+def bounded_rotation_angle(width: int, height: int, bounds, angle: float, grip) -> int:
+    """Quantize lean and keep every occupied corner inside the fixed canvas."""
+    angle = max(-20, min(20, round(angle / 2) * 2)) if math.isfinite(angle) else 0
+    gx, gy = grip
+    left, top, right, bottom = bounds
+    while angle:
+        cosine, sine = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+        corners = [(gx + cosine * (x - gx) - sine * (y - gy),
+                    gy + sine * (x - gx) + cosine * (y - gy))
+                   for x in (left, right) for y in (top, bottom)]
+        if all(0 <= x <= width and 0 <= y <= height for x, y in corners):
+            break
+        angle -= 2 if angle > 0 else -2
+    return angle
+
+
+def rotate_sprite_rgba(width: int, height: int, pixels: bytes, angle: float, grip) -> bytes:
+    """Nearest-neighbor display transform about the actual grip; no new colors.
+
+    Source art is never rewritten. The frame canvas and grip stay fixed, and
+    inverse pixel-center mapping avoids holes between rotated source pixels.
+    """
+    if not angle:
+        return pixels
+    cosine, sine = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+    gx, gy = grip
+    result = bytearray(width * height * 4)
+    for y in range(height):
+        dy = y + 0.5 - gy
+        for x in range(width):
+            dx = x + 0.5 - gx
+            sx = math.floor(gx + cosine * dx + sine * dy)
+            sy = math.floor(gy - sine * dx + cosine * dy)
+            if 0 <= sx < width and 0 <= sy < height:
+                source, target = (sy * width + sx) * 4, (y * width + x) * 4
+                result[target:target + 4] = pixels[source:source + 4]
+    return bytes(result)
 
 
 class SpriteAtlas:
@@ -80,6 +133,7 @@ class SpriteAtlas:
         self.manifest = json.loads(path.read_text(encoding="utf-8-sig"))
         self.originals = {name: tk.PhotoImage(master=master, data=base64.b64encode(color_key_png(path.parent / info["file"])))
                           for name, info in self.manifest["frames"].items()}
+        self._carry_sources = {}
         self.set_scale(scale)
 
     def set_scale(self, scale: str):
@@ -93,6 +147,44 @@ class SpriteAtlas:
         self.height = round(self.manifest["frame_height"] * float(self.scale))
         anchor = self.manifest["anchor"]
         self.anchor = (round(anchor["x"] * float(self.scale)), round(anchor["y"] * float(self.scale)))
+        self._carry_cache = OrderedDict()
+        self._carry_grip = None
+
+    def carry_image(self, frame: str, angle: float, grip: tuple[float, float]):
+        """Return ``(render_key, image)`` for a fixed-grip physical carry sample.
+
+        ``grip`` is the original press position relative to the unscaled sprite
+        top-left. The result has the normal frame dimensions and NW placement.
+        Only a requested variant is built, with at most 24 small cached images;
+        changing the grip or sprite scale clears the cache.
+        """
+        frame = self.resolve_frame(frame)
+        width, height = self.manifest["frame_width"], self.manifest["frame_height"]
+        gx, gy = (float(grip[0]), float(grip[1]))
+        if not math.isfinite(gx) or not math.isfinite(gy):
+            gx, gy = width / 2, height / 3
+        grip = (max(0, min(width, gx)), max(0, min(height, gy)))
+        if grip != self._carry_grip:
+            self._carry_cache.clear()
+            self._carry_grip = grip
+        bounds = self.manifest["frames"][frame].get("opaque_bounds", (0, 0, width, height))
+        angle = bounded_rotation_angle(width, height, bounds, angle, grip)
+        key = ("carry", frame, angle, grip)
+        if not angle:
+            return key, self.images[frame]
+        if key in self._carry_cache:
+            self._carry_cache.move_to_end(key)
+            return key, self._carry_cache[key]
+        if frame not in self._carry_sources:
+            self._carry_sources[frame] = _read_rgba(self.path.parent / self.manifest["frames"][frame]["file"])
+        width, height, pixels = self._carry_sources[frame]
+        transformed = rotate_sprite_rgba(width, height, pixels, angle, grip)
+        original = tk.PhotoImage(master=self.master, data=base64.b64encode(_rgba_png(width, height, transformed)))
+        image = original.zoom(self.scale.numerator).subsample(self.scale.denominator)
+        self._carry_cache[key] = image
+        while len(self._carry_cache) > 24:
+            self._carry_cache.popitem(last=False)
+        return key, image
 
     def resolve_frame(self, name: str) -> str:
         """Return a manifest frame, applying the small set of supported aliases."""

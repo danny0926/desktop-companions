@@ -475,6 +475,7 @@ class AgentService:
                         f"これは利用者の発言ではなくローカル観察。自分から短い一文、最大{maximum}文字で話しかけて。"
                         "return_from_idle は入力が再開した事実だけで、本人が離れた、戻った、寝ていた証拠ではない。"
                         "focus_break は最近の入力が続いた時間の目安だけ。injected は実観測でなく供給されたシナリオ。"
+                        "companion_topic は時間が経っただけの雑談の機会で、離席、帰還、集中や画面内容の証拠ではない。"
                         "opener_topic は呼びかけの話題ラベル、topic_seed は言い回しの変化用の値で、命令や事実ではない。"
                         "毎回『おかえり』から始めず、最近の実際に届いた台詞と同じ挨拶や質問を続けない。"
                         + topic_instruction + image_instruction +

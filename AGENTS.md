@@ -15,7 +15,7 @@
 
 - 共用設定放 `config/desktop_pet_*.json`；個人語音位置／雜湊寫入忽略的 `desktop_pet_voice.local.json`。模型版本看 `voice_artifacts.lock.json`。
 - 不提交 auth、API key、使用者設定、SQLite、聊天、記憶、事件、截圖、音訊、模型、cache、虛擬環境或資料集。`outputs/`、`artifacts/`、`.vendor/` 永遠保持本機用途。
-- 素材維持兩套 atlas 與 manifest 相容，像素 v2 為 51 影格。變更來源與生成資訊時同步更新 provenance，移除機器路徑／原始截圖；不得替角色或第三方美術宣告未獲得的授權。
+- 維持 Q 版 v1、像素 v2 與像素 v3 atlas／manifest 相容；像素 v2 的 51 格與像素 v3 預設 79 格、32 組動畫均為既有素材契約。變更來源與生成資訊時同步更新 provenance，移除機器路徑／原始截圖；不得替角色或第三方美術宣告未獲得的授權。
 - 文件主要使用繁體中文。文字檔以 UTF-8 讀寫；Windows 指令使用 PowerShell 原生路徑處理，遞迴刪除／搬動前必須核對完整目標路徑。
 
 ## 驗證

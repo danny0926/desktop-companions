@@ -15,8 +15,8 @@ _ATTITUDE = {
     "gentle": ("相手を気づかう優しい気持ちで", "smile", "nod"),
     "affectionate": ("親しい相手に素直な愛情を込めて", "smile", "nod"),
     "playful": ("親しい相手を少しからかう、いたずらっぽい気持ちで", "smug", "adjust_ribbon"),
-    "cold": ("距離を置いた冷静な気持ちで", "irritated", "idle"),
-    "angry": ("不満を率直に伝える気持ちで", "irritated", "shake"),
+    "cold": ("距離を置いた冷静な気持ちで", "irritated", "crossed_arms"),
+    "angry": ("不満を率直に伝える気持ちで", "irritated", "crossed_arms"),
     "surprised": ("思いがけないことに驚いた気持ちで", "surprised", "bounce"),
     "sad": ("悲しさを静かににじませて", "sad", "idle"),
     "sleepy": ("眠気を感じたくつろいだ気持ちで", "sleepy", "yawn"),
@@ -65,7 +65,7 @@ def performance(attitude: str, intensity: str, delivery: str) -> dict[str, str]:
     elif attitude == "angry" and intensity == "strong":
         expression = "annoyed"
     elif attitude == "surprised" and intensity == "light":
-        expression, motion = "curious", "nod"
+        expression, motion = "curious", "head_tilt"
     return {
         "caption_ja": f"{description}、{_INTENSITY[intensity]}、{_DELIVERY[delivery]}",
         "expression": expression,

@@ -1,0 +1,4750 @@
+{
+  "schema": "desktop-pet-sprite-atlas",
+  "schema_version": 1,
+  "id": "nino-pixel-v3",
+  "name": "二乃像素桌寵 v3",
+  "art_status": "AI-generated pixel fan art; v2 retained with sulking, curious lean, ground sitting, carried and landing motions",
+  "image": "nino-pixel-v3.png",
+  "image_width": 480,
+  "image_height": 1904,
+  "columns": 5,
+  "rows": 17,
+  "frame_width": 96,
+  "frame_height": 112,
+  "default_animation": "idle",
+  "fallback_animation": "idle",
+  "anchor": {
+    "x": 48,
+    "y": 108
+  },
+  "coordinate_system": "Integer logical pixels; binary alpha; ground baseline y=108; carried feet remain suspended above baseline.",
+  "scale": {
+    "recommended": 2,
+    "render_width": 192,
+    "render_height": 224,
+    "filter": "nearest",
+    "alternates": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "frames": {
+    "idle": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/idle.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "source_frame": "talk",
+        "body": "unchanged generated talk frame",
+        "face_patch_source": "blink",
+        "face_patch_rect": [
+          47,
+          39,
+          55,
+          43
+        ],
+        "operation": "literal generated mouth crop for neutral closed mouth",
+        "creative_redrawing": false
+      }
+    },
+    "blink": {
+      "rect": {
+        "x": 96,
+        "y": 0,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/blink.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "source": "expressions-generated-raw.png",
+        "cell": [
+          0,
+          0,
+          474,
+          564
+        ],
+        "source_crop_alpha128": [
+          173,
+          22,
+          458,
+          556
+        ],
+        "nearest_scale": 0.1947565543071161,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "creative_redrawing": false,
+        "composition": {
+          "body_source_frame": "talk",
+          "literal_generated_face_patch_rect": [
+            34,
+            28,
+            65,
+            43
+          ],
+          "all_pixels_outside_patch_identical_to_talk": true,
+          "creative_redrawing": false
+        }
+      }
+    },
+    "talk": {
+      "rect": {
+        "x": 192,
+        "y": 0,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/talk.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "source": "expressions-generated-raw.png",
+        "cell": [
+          474,
+          0,
+          948,
+          564
+        ],
+        "source_crop_alpha128": [
+          560,
+          22,
+          840,
+          556
+        ],
+        "nearest_scale": 0.1947565543071161,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "creative_redrawing": false
+      }
+    },
+    "happy": {
+      "rect": {
+        "x": 288,
+        "y": 0,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/happy.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "source": "expressions-generated-raw.png",
+        "cell": [
+          948,
+          0,
+          1422,
+          564
+        ],
+        "source_crop_alpha128": [
+          973,
+          22,
+          1258,
+          556
+        ],
+        "nearest_scale": 0.1947565543071161,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "creative_redrawing": false,
+        "composition": {
+          "body_source_frame": "talk",
+          "literal_generated_face_patch_rect": [
+            34,
+            28,
+            65,
+            43
+          ],
+          "all_pixels_outside_patch_identical_to_talk": true,
+          "creative_redrawing": false
+        }
+      }
+    },
+    "annoyed": {
+      "rect": {
+        "x": 384,
+        "y": 0,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/annoyed.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "source": "expressions-generated-raw.png",
+        "cell": [
+          0,
+          564,
+          474,
+          1106
+        ],
+        "source_crop_alpha128": [
+          173,
+          570,
+          458,
+          1096
+        ],
+        "nearest_scale": 0.1947565543071161,
+        "resized_sprite": [
+          56,
+          102
+        ],
+        "paste_offset": [
+          20,
+          6
+        ],
+        "creative_redrawing": false,
+        "composition": {
+          "body_source_frame": "talk",
+          "literal_generated_face_patch_rect": [
+            34,
+            28,
+            65,
+            43
+          ],
+          "all_pixels_outside_patch_identical_to_talk": true,
+          "creative_redrawing": false
+        }
+      }
+    },
+    "shy": {
+      "rect": {
+        "x": 0,
+        "y": 112,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/shy.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "source": "expressions-generated-raw.png",
+        "cell": [
+          474,
+          564,
+          948,
+          1106
+        ],
+        "source_crop_alpha128": [
+          560,
+          570,
+          843,
+          1096
+        ],
+        "nearest_scale": 0.1947565543071161,
+        "resized_sprite": [
+          55,
+          102
+        ],
+        "paste_offset": [
+          20,
+          6
+        ],
+        "creative_redrawing": false,
+        "composition": {
+          "body_source_frame": "talk",
+          "literal_generated_face_patch_rect": [
+            34,
+            28,
+            65,
+            43
+          ],
+          "all_pixels_outside_patch_identical_to_talk": true,
+          "creative_redrawing": false
+        }
+      }
+    },
+    "sit": {
+      "rect": {
+        "x": 96,
+        "y": 112,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        19,
+        28,
+        76,
+        108
+      ],
+      "processing": {
+        "source": "expressions-generated-raw.png",
+        "cell": [
+          948,
+          564,
+          1422,
+          1106
+        ],
+        "source_crop_alpha128": [
+          973,
+          674,
+          1264,
+          1087
+        ],
+        "nearest_scale": 0.1947565543071161,
+        "resized_sprite": [
+          57,
+          80
+        ],
+        "paste_offset": [
+          19,
+          28
+        ],
+        "creative_redrawing": false
+      }
+    },
+    "walk_right_1": {
+      "rect": {
+        "x": 192,
+        "y": 112,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_right_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        77,
+        108
+      ],
+      "processing": {
+        "source": "walk-generated-raw.png",
+        "cell": [
+          0,
+          0,
+          580,
+          678
+        ],
+        "source_crop_alpha128": [
+          188,
+          60,
+          530,
+          663
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          59,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "creative_redrawing": false
+      }
+    },
+    "walk_right_2": {
+      "rect": {
+        "x": 288,
+        "y": 112,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_right_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        23,
+        3,
+        72,
+        108
+      ],
+      "processing": {
+        "source": "walk-generated-raw.png",
+        "cell": [
+          580,
+          0,
+          1160,
+          678
+        ],
+        "source_crop_alpha128": [
+          699,
+          58,
+          983,
+          664
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          49,
+          105
+        ],
+        "paste_offset": [
+          23,
+          3
+        ],
+        "creative_redrawing": false
+      }
+    },
+    "walk_right_3": {
+      "rect": {
+        "x": 384,
+        "y": 112,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_right_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        17,
+        5,
+        79,
+        108
+      ],
+      "processing": {
+        "source": "walk-generated-raw.png",
+        "cell": [
+          0,
+          678,
+          580,
+          1355
+        ],
+        "source_crop_alpha128": [
+          171,
+          715,
+          529,
+          1312
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          62,
+          103
+        ],
+        "paste_offset": [
+          17,
+          5
+        ],
+        "creative_redrawing": false
+      }
+    },
+    "walk_right_4": {
+      "rect": {
+        "x": 0,
+        "y": 224,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_right_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        23,
+        4,
+        72,
+        108
+      ],
+      "processing": {
+        "source": "walk-generated-raw.png",
+        "cell": [
+          580,
+          678,
+          1160,
+          1355
+        ],
+        "source_crop_alpha128": [
+          698,
+          711,
+          984,
+          1312
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          49,
+          104
+        ],
+        "paste_offset": [
+          23,
+          4
+        ],
+        "creative_redrawing": false
+      }
+    },
+    "walk_left_1": {
+      "rect": {
+        "x": 96,
+        "y": 224,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_left_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        19,
+        4,
+        78,
+        108
+      ],
+      "processing": {
+        "source_frame": "walk_right_1",
+        "operation": "exact horizontal pixel mirror of the full 96x112 frame",
+        "creative_redrawing": false,
+        "independently_generated": false
+      }
+    },
+    "walk_left_2": {
+      "rect": {
+        "x": 192,
+        "y": 224,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_left_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        24,
+        3,
+        73,
+        108
+      ],
+      "processing": {
+        "source_frame": "walk_right_2",
+        "operation": "exact horizontal pixel mirror of the full 96x112 frame",
+        "creative_redrawing": false,
+        "independently_generated": false
+      }
+    },
+    "walk_left_3": {
+      "rect": {
+        "x": 288,
+        "y": 224,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_left_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        17,
+        5,
+        79,
+        108
+      ],
+      "processing": {
+        "source_frame": "walk_right_3",
+        "operation": "exact horizontal pixel mirror of the full 96x112 frame",
+        "creative_redrawing": false,
+        "independently_generated": false
+      }
+    },
+    "walk_left_4": {
+      "rect": {
+        "x": 384,
+        "y": 224,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_left_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        24,
+        4,
+        73,
+        108
+      ],
+      "processing": {
+        "source_frame": "walk_right_4",
+        "operation": "exact horizontal pixel mirror of the full 96x112 frame",
+        "creative_redrawing": false,
+        "independently_generated": false
+      }
+    },
+    "walk_down_1": {
+      "rect": {
+        "x": 0,
+        "y": 336,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_down_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-down-generated-raw.png",
+        "cell": [
+          0,
+          0,
+          600,
+          656
+        ],
+        "source_crop_alpha128": [
+          226,
+          104,
+          490,
+          632
+        ],
+        "nearest_scale": 0.19696969696969696,
+        "resized_sprite": [
+          52,
+          104
+        ],
+        "paste_offset": [
+          22,
+          4
+        ],
+        "creative_redrawing": false,
+        "phase": "contact_A",
+        "view": "front-facing toward viewer",
+        "independently_generated": true,
+        "target_opaque_height": 104
+      }
+    },
+    "walk_down_2": {
+      "rect": {
+        "x": 96,
+        "y": 336,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_down_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        3,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-down-generated-raw.png",
+        "cell": [
+          600,
+          0,
+          1199,
+          656
+        ],
+        "source_crop_alpha128": [
+          696,
+          104,
+          961,
+          632
+        ],
+        "nearest_scale": 0.19886363636363635,
+        "resized_sprite": [
+          53,
+          105
+        ],
+        "paste_offset": [
+          21,
+          3
+        ],
+        "creative_redrawing": false,
+        "phase": "passing_A",
+        "view": "front-facing toward viewer",
+        "independently_generated": true,
+        "target_opaque_height": 105
+      }
+    },
+    "walk_down_3": {
+      "rect": {
+        "x": 192,
+        "y": 336,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_down_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-down-generated-raw.png",
+        "cell": [
+          0,
+          656,
+          600,
+          1312
+        ],
+        "source_crop_alpha128": [
+          226,
+          694,
+          491,
+          1219
+        ],
+        "nearest_scale": 0.1980952380952381,
+        "resized_sprite": [
+          52,
+          104
+        ],
+        "paste_offset": [
+          22,
+          4
+        ],
+        "creative_redrawing": false,
+        "phase": "contact_B",
+        "view": "front-facing toward viewer",
+        "independently_generated": true,
+        "target_opaque_height": 104
+      }
+    },
+    "walk_down_4": {
+      "rect": {
+        "x": 288,
+        "y": 336,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_down_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        3,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-down-generated-raw.png",
+        "cell": [
+          600,
+          656,
+          1199,
+          1312
+        ],
+        "source_crop_alpha128": [
+          696,
+          690,
+          961,
+          1219
+        ],
+        "nearest_scale": 0.19848771266540643,
+        "resized_sprite": [
+          53,
+          105
+        ],
+        "paste_offset": [
+          21,
+          3
+        ],
+        "creative_redrawing": false,
+        "phase": "passing_B",
+        "view": "front-facing toward viewer",
+        "independently_generated": true,
+        "target_opaque_height": 105
+      }
+    },
+    "walk_up_1": {
+      "rect": {
+        "x": 0,
+        "y": 448,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_up_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-up-generated-raw.png",
+        "cell": [
+          0,
+          0,
+          600,
+          656
+        ],
+        "source_crop_alpha128": [
+          225,
+          99,
+          494,
+          637
+        ],
+        "nearest_scale": 0.19330855018587362,
+        "resized_sprite": [
+          52,
+          104
+        ],
+        "paste_offset": [
+          22,
+          4
+        ],
+        "creative_redrawing": false,
+        "phase": "contact_A",
+        "view": "rear-facing away from viewer",
+        "independently_generated": true,
+        "target_opaque_height": 104
+      }
+    },
+    "walk_up_2": {
+      "rect": {
+        "x": 96,
+        "y": 448,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_up_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        3,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-up-generated-raw.png",
+        "cell": [
+          600,
+          0,
+          1199,
+          656
+        ],
+        "source_crop_alpha128": [
+          696,
+          97,
+          966,
+          633
+        ],
+        "nearest_scale": 0.1958955223880597,
+        "resized_sprite": [
+          53,
+          105
+        ],
+        "paste_offset": [
+          21,
+          3
+        ],
+        "creative_redrawing": false,
+        "phase": "passing_A",
+        "view": "rear-facing away from viewer",
+        "independently_generated": true,
+        "target_opaque_height": 105
+      }
+    },
+    "walk_up_3": {
+      "rect": {
+        "x": 192,
+        "y": 448,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_up_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-up-generated-raw.png",
+        "cell": [
+          0,
+          656,
+          600,
+          1312
+        ],
+        "source_crop_alpha128": [
+          226,
+          687,
+          495,
+          1220
+        ],
+        "nearest_scale": 0.1951219512195122,
+        "resized_sprite": [
+          52,
+          104
+        ],
+        "paste_offset": [
+          22,
+          4
+        ],
+        "creative_redrawing": false,
+        "phase": "contact_B",
+        "view": "rear-facing away from viewer",
+        "independently_generated": true,
+        "target_opaque_height": 104
+      }
+    },
+    "walk_up_4": {
+      "rect": {
+        "x": 288,
+        "y": 448,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/walk_up_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        3,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "walk-up-generated-raw.png",
+        "cell": [
+          600,
+          656,
+          1199,
+          1312
+        ],
+        "source_crop_alpha128": [
+          697,
+          687,
+          966,
+          1220
+        ],
+        "nearest_scale": 0.19699812382739212,
+        "resized_sprite": [
+          53,
+          105
+        ],
+        "paste_offset": [
+          21,
+          3
+        ],
+        "creative_redrawing": false,
+        "phase": "passing_B",
+        "view": "rear-facing away from viewer",
+        "independently_generated": true,
+        "target_opaque_height": 105
+      }
+    },
+    "headpat_1": {
+      "rect": {
+        "x": 0,
+        "y": 560,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/headpat_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "headpat-generated-raw.png",
+        "cell": [
+          0,
+          0,
+          580,
+          677
+        ],
+        "source_crop_alpha128": [
+          229,
+          40,
+          540,
+          659
+        ],
+        "nearest_scale": 0.1680129240710824,
+        "resized_sprite": [
+          52,
+          104
+        ],
+        "paste_offset": [
+          22,
+          4
+        ],
+        "phase": "soft_anticipation",
+        "independently_generated": true,
+        "creative_redrawing": false,
+        "composition": {
+          "generated_upper_body_rect": [
+            0,
+            0,
+            96,
+            58
+          ],
+          "body_source_frame": "idle",
+          "canonical_lower_body_rect": [
+            0,
+            58,
+            96,
+            112
+          ],
+          "all_lower_body_pixels_identical_to_idle": true,
+          "operation": "literal generated upper-body crop over unchanged canonical lower body"
+        }
+      }
+    },
+    "headpat_2": {
+      "rect": {
+        "x": 96,
+        "y": 560,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/headpat_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "headpat-generated-raw.png",
+        "cell": [
+          580,
+          0,
+          1161,
+          677
+        ],
+        "source_crop_alpha128": [
+          670,
+          46,
+          983,
+          660
+        ],
+        "nearest_scale": 0.16938110749185667,
+        "resized_sprite": [
+          53,
+          104
+        ],
+        "paste_offset": [
+          21,
+          4
+        ],
+        "phase": "closed_eye_tilt",
+        "independently_generated": true,
+        "creative_redrawing": false,
+        "composition": {
+          "generated_upper_body_rect": [
+            0,
+            0,
+            96,
+            58
+          ],
+          "body_source_frame": "idle",
+          "canonical_lower_body_rect": [
+            0,
+            58,
+            96,
+            112
+          ],
+          "all_lower_body_pixels_identical_to_idle": true,
+          "operation": "literal generated upper-body crop over unchanged canonical lower body"
+        }
+      }
+    },
+    "headpat_3": {
+      "rect": {
+        "x": 192,
+        "y": 560,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/headpat_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "headpat-generated-raw.png",
+        "cell": [
+          0,
+          677,
+          580,
+          1354
+        ],
+        "source_crop_alpha128": [
+          229,
+          700,
+          537,
+          1310
+        ],
+        "nearest_scale": 0.17049180327868851,
+        "resized_sprite": [
+          53,
+          104
+        ],
+        "paste_offset": [
+          21,
+          4
+        ],
+        "phase": "blushing_smile",
+        "independently_generated": true,
+        "creative_redrawing": false,
+        "composition": {
+          "generated_upper_body_rect": [
+            0,
+            0,
+            96,
+            58
+          ],
+          "body_source_frame": "idle",
+          "canonical_lower_body_rect": [
+            0,
+            58,
+            96,
+            112
+          ],
+          "all_lower_body_pixels_identical_to_idle": true,
+          "operation": "literal generated upper-body crop over unchanged canonical lower body"
+        }
+      }
+    },
+    "headpat_4": {
+      "rect": {
+        "x": 288,
+        "y": 560,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/headpat_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "source": "headpat-generated-raw.png",
+        "cell": [
+          580,
+          677,
+          1161,
+          1354
+        ],
+        "source_crop_alpha128": [
+          654,
+          699,
+          968,
+          1310
+        ],
+        "nearest_scale": 0.1702127659574468,
+        "resized_sprite": [
+          53,
+          104
+        ],
+        "paste_offset": [
+          21,
+          4
+        ],
+        "phase": "recover_smile",
+        "independently_generated": true,
+        "creative_redrawing": false,
+        "composition": {
+          "generated_upper_body_rect": [
+            0,
+            0,
+            96,
+            58
+          ],
+          "body_source_frame": "idle",
+          "canonical_lower_body_rect": [
+            0,
+            58,
+            96,
+            112
+          ],
+          "all_lower_body_pixels_identical_to_idle": true,
+          "operation": "literal generated upper-body crop over unchanged canonical lower body"
+        }
+      }
+    },
+    "surprised": {
+      "rect": {
+        "x": 0,
+        "y": 672,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/surprised.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          0,
+          328,
+          599
+        ],
+        "source_crop_alpha128": [
+          38,
+          24,
+          323,
+          559
+        ],
+        "nearest_scale": 0.19439252336448598,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "surprised",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "sad": {
+      "rect": {
+        "x": 96,
+        "y": 672,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sad.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          328,
+          0,
+          656,
+          599
+        ],
+        "source_crop_alpha128": [
+          353,
+          23,
+          637,
+          559
+        ],
+        "nearest_scale": 0.19402985074626866,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "sad",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "sleepy": {
+      "rect": {
+        "x": 192,
+        "y": 672,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sleepy.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          656,
+          0,
+          984,
+          599
+        ],
+        "source_crop_alpha128": [
+          671,
+          24,
+          957,
+          559
+        ],
+        "nearest_scale": 0.19439252336448598,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "sleepy",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "laughing": {
+      "rect": {
+        "x": 288,
+        "y": 672,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/laughing.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          984,
+          0,
+          1312,
+          599
+        ],
+        "source_crop_alpha128": [
+          987,
+          23,
+          1272,
+          559
+        ],
+        "nearest_scale": 0.19402985074626866,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "laughing",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "smug": {
+      "rect": {
+        "x": 384,
+        "y": 672,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/smug.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          599,
+          328,
+          1199
+        ],
+        "source_crop_alpha128": [
+          39,
+          617,
+          324,
+          1152
+        ],
+        "nearest_scale": 0.19439252336448598,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "smug",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "worried": {
+      "rect": {
+        "x": 0,
+        "y": 784,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/worried.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          328,
+          599,
+          656,
+          1199
+        ],
+        "source_crop_alpha128": [
+          354,
+          617,
+          638,
+          1152
+        ],
+        "nearest_scale": 0.19439252336448598,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          13,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "worried",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "irritated": {
+      "rect": {
+        "x": 96,
+        "y": 784,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/irritated.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          656,
+          599,
+          984,
+          1199
+        ],
+        "source_crop_alpha128": [
+          671,
+          617,
+          957,
+          1152
+        ],
+        "nearest_scale": 0.19439252336448598,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "irritated",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "curious": {
+      "rect": {
+        "x": 192,
+        "y": 784,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/curious.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          984,
+          599,
+          1312,
+          1199
+        ],
+        "source_crop_alpha128": [
+          988,
+          617,
+          1273,
+          1152
+        ],
+        "nearest_scale": 0.19439252336448598,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          13,
+          0,
+          43,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "expressions-expanded-generated-raw.png",
+        "phase": "curious",
+        "composition": {
+          "operation": "literal generated face crop over unchanged canonical standing sprite",
+          "generated_face_rect": [
+            32,
+            24,
+            68,
+            44
+          ],
+          "body_source_frame": "idle",
+          "all_pixels_outside_face_rect_identical_to_idle": true
+        }
+      }
+    },
+    "wave_1": {
+      "rect": {
+        "x": 288,
+        "y": 784,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/wave_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          0,
+          580,
+          677
+        ],
+        "source_crop_alpha128": [
+          201,
+          49,
+          526,
+          652
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "wave-generated-raw.png",
+        "phase": "raise_hand",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "wave_2": {
+      "rect": {
+        "x": 384,
+        "y": 784,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/wave_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          0,
+          1161,
+          677
+        ],
+        "source_crop_alpha128": [
+          626,
+          49,
+          951,
+          652
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "wave-generated-raw.png",
+        "phase": "open_palm_out",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "wave_3": {
+      "rect": {
+        "x": 0,
+        "y": 896,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/wave_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          677,
+          580,
+          1355
+        ],
+        "source_crop_alpha128": [
+          201,
+          699,
+          526,
+          1302
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "wave-generated-raw.png",
+        "phase": "palm_in",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "wave_4": {
+      "rect": {
+        "x": 96,
+        "y": 896,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/wave_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          677,
+          1161,
+          1355
+        ],
+        "source_crop_alpha128": [
+          626,
+          699,
+          950,
+          1302
+        ],
+        "nearest_scale": 0.1724709784411277,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          14,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "wave-generated-raw.png",
+        "phase": "lower_hand",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "stretch_1": {
+      "rect": {
+        "x": 192,
+        "y": 896,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/stretch_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        16,
+        4,
+        76,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          0,
+          580,
+          677
+        ],
+        "source_crop_alpha128": [
+          154,
+          42,
+          508,
+          656
+        ],
+        "nearest_scale": 0.16938110749185667,
+        "resized_sprite": [
+          60,
+          104
+        ],
+        "paste_offset": [
+          16,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          16,
+          0,
+          47,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "stretch-generated-raw.png",
+        "phase": "elbows_up",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "stretch_2": {
+      "rect": {
+        "x": 288,
+        "y": 896,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/stretch_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        16,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          0,
+          1160,
+          677
+        ],
+        "source_crop_alpha128": [
+          648,
+          42,
+          998,
+          656
+        ],
+        "nearest_scale": 0.16938110749185667,
+        "resized_sprite": [
+          59,
+          104
+        ],
+        "paste_offset": [
+          16,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          16,
+          0,
+          47,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "stretch-generated-raw.png",
+        "phase": "hands_behind_head",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "stretch_3": {
+      "rect": {
+        "x": 384,
+        "y": 896,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/stretch_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        10,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          677,
+          580,
+          1355
+        ],
+        "source_crop_alpha128": [
+          154,
+          702,
+          533,
+          1312
+        ],
+        "nearest_scale": 0.17049180327868851,
+        "resized_sprite": [
+          65,
+          104
+        ],
+        "paste_offset": [
+          10,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          22,
+          0,
+          54,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "stretch-generated-raw.png",
+        "phase": "stretch_elbows_out",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "stretch_4": {
+      "rect": {
+        "x": 0,
+        "y": 1008,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/stretch_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        16,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          677,
+          1160,
+          1355
+        ],
+        "source_crop_alpha128": [
+          652,
+          702,
+          1000,
+          1312
+        ],
+        "nearest_scale": 0.17049180327868851,
+        "resized_sprite": [
+          59,
+          104
+        ],
+        "paste_offset": [
+          16,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          16,
+          0,
+          47,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "stretch-generated-raw.png",
+        "phase": "release",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "yawn_1": {
+      "rect": {
+        "x": 96,
+        "y": 1008,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/yawn_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          0,
+          580,
+          677
+        ],
+        "source_crop_alpha128": [
+          205,
+          53,
+          531,
+          653
+        ],
+        "nearest_scale": 0.17333333333333334,
+        "resized_sprite": [
+          57,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          15,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "yawn-generated-raw.png",
+        "phase": "sleepy_anticipation",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "yawn_2": {
+      "rect": {
+        "x": 192,
+        "y": 1008,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/yawn_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          0,
+          1160,
+          677
+        ],
+        "source_crop_alpha128": [
+          630,
+          54,
+          957,
+          653
+        ],
+        "nearest_scale": 0.17362270450751252,
+        "resized_sprite": [
+          57,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          15,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "yawn-generated-raw.png",
+        "phase": "cover_yawn",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "yawn_3": {
+      "rect": {
+        "x": 288,
+        "y": 1008,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/yawn_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        21,
+        4,
+        78,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          677,
+          580,
+          1355
+        ],
+        "source_crop_alpha128": [
+          216,
+          700,
+          551,
+          1308
+        ],
+        "nearest_scale": 0.17105263157894737,
+        "resized_sprite": [
+          57,
+          104
+        ],
+        "paste_offset": [
+          21,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          12,
+          0,
+          42,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "yawn-generated-raw.png",
+        "phase": "tilted_yawn",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "yawn_4": {
+      "rect": {
+        "x": 384,
+        "y": 1008,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/yawn_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          677,
+          1160,
+          1355
+        ],
+        "source_crop_alpha128": [
+          630,
+          707,
+          957,
+          1308
+        ],
+        "nearest_scale": 0.17304492512479203,
+        "resized_sprite": [
+          57,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          15,
+          0,
+          44,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "yawn-generated-raw.png",
+        "phase": "recover",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "adjust_ribbon_1": {
+      "rect": {
+        "x": 0,
+        "y": 1120,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/adjust_ribbon_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        19,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          0,
+          580,
+          677
+        ],
+        "source_crop_alpha128": [
+          212,
+          56,
+          519,
+          635
+        ],
+        "nearest_scale": 0.17962003454231434,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          13,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "adjust_ribbon-generated-raw.png",
+        "phase": "raise_hand",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "adjust_ribbon_2": {
+      "rect": {
+        "x": 96,
+        "y": 1120,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/adjust_ribbon_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        19,
+        4,
+        74,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          0,
+          1161,
+          677
+        ],
+        "source_crop_alpha128": [
+          639,
+          56,
+          943,
+          635
+        ],
+        "nearest_scale": 0.17962003454231434,
+        "resized_sprite": [
+          55,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          13,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "adjust_ribbon-generated-raw.png",
+        "phase": "touch_butterfly_bow",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "adjust_ribbon_3": {
+      "rect": {
+        "x": 192,
+        "y": 1120,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/adjust_ribbon_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          0,
+          677,
+          580,
+          1355
+        ],
+        "source_crop_alpha128": [
+          201,
+          709,
+          522,
+          1291
+        ],
+        "nearest_scale": 0.17869415807560138,
+        "resized_sprite": [
+          57,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          15,
+          0,
+          46,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "adjust_ribbon-generated-raw.png",
+        "phase": "straighten_bow",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "adjust_ribbon_4": {
+      "rect": {
+        "x": 288,
+        "y": 1120,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/adjust_ribbon_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        19,
+        4,
+        75,
+        108
+      ],
+      "processing": {
+        "cell": [
+          580,
+          677,
+          1161,
+          1355
+        ],
+        "source_crop_alpha128": [
+          636,
+          710,
+          947,
+          1291
+        ],
+        "nearest_scale": 0.17900172117039587,
+        "resized_sprite": [
+          56,
+          104
+        ],
+        "paste_offset": [
+          19,
+          4
+        ],
+        "shoe_registration_bounds_in_resized_crop": [
+          13,
+          0,
+          45,
+          19
+        ],
+        "creative_redrawing": false,
+        "independently_generated": true,
+        "source": "adjust_ribbon-generated-raw.png",
+        "phase": "satisfied_release",
+        "composition": {
+          "operation": "literal canonical legs crop under independently generated upper body",
+          "canonical_legs_rect": [
+            0,
+            80,
+            96,
+            112
+          ],
+          "body_source_frame": "idle",
+          "all_leg_pixels_identical_to_idle": true
+        }
+      }
+    },
+    "crossed_arms_1": {
+      "rect": {
+        "x": 0,
+        "y": 1232,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/crossed_arms_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          100,
+          11,
+          327,
+          409
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          59,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 1
+      }
+    },
+    "crossed_arms_2": {
+      "rect": {
+        "x": 96,
+        "y": 1232,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/crossed_arms_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        4,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          417,
+          11,
+          644,
+          409
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          59,
+          104
+        ],
+        "paste_offset": [
+          20,
+          4
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 2
+      }
+    },
+    "crossed_arms_3": {
+      "rect": {
+        "x": 192,
+        "y": 1232,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/crossed_arms_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          715,
+          11,
+          950,
+          409
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          61,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 3
+      }
+    },
+    "crossed_arms_4": {
+      "rect": {
+        "x": 288,
+        "y": 1232,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/crossed_arms_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        14,
+        4,
+        76,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          1033,
+          11,
+          1271,
+          409
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          62,
+          104
+        ],
+        "paste_offset": [
+          14,
+          4
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 4
+      }
+    },
+    "head_tilt_1": {
+      "rect": {
+        "x": 384,
+        "y": 1232,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/head_tilt_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        17,
+        9,
+        78,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          88,
+          423,
+          323,
+          803
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          61,
+          99
+        ],
+        "paste_offset": [
+          17,
+          9
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 1
+      }
+    },
+    "head_tilt_2": {
+      "rect": {
+        "x": 0,
+        "y": 1344,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/head_tilt_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        26,
+        10,
+        91,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          438,
+          427,
+          686,
+          803
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          65,
+          98
+        ],
+        "paste_offset": [
+          26,
+          10
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 2
+      }
+    },
+    "head_tilt_3": {
+      "rect": {
+        "x": 96,
+        "y": 1344,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/head_tilt_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        25,
+        14,
+        93,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          742,
+          443,
+          1002,
+          803
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          68,
+          94
+        ],
+        "paste_offset": [
+          25,
+          14
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 3
+      }
+    },
+    "head_tilt_4": {
+      "rect": {
+        "x": 192,
+        "y": 1344,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/head_tilt_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        9,
+        83,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          1067,
+          426,
+          1302,
+          803
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          61,
+          99
+        ],
+        "paste_offset": [
+          22,
+          9
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 4
+      }
+    },
+    "carried_1": {
+      "rect": {
+        "x": 288,
+        "y": 1344,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/carried_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        16,
+        4,
+        79,
+        93
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          74,
+          815,
+          316,
+          1154
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          63,
+          89
+        ],
+        "paste_offset": [
+          16,
+          4
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 1
+      }
+    },
+    "carried_2": {
+      "rect": {
+        "x": 384,
+        "y": 1344,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/carried_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        17,
+        4,
+        79,
+        95
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          405,
+          815,
+          642,
+          1163
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          62,
+          91
+        ],
+        "paste_offset": [
+          17,
+          4
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 2
+      }
+    },
+    "carried_3": {
+      "rect": {
+        "x": 0,
+        "y": 1456,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/carried_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        78,
+        95
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          733,
+          815,
+          963,
+          1163
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          60,
+          91
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 3
+      }
+    },
+    "carried_4": {
+      "rect": {
+        "x": 96,
+        "y": 1456,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/carried_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        78,
+        93
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          1059,
+          819,
+          1288,
+          1161
+        ],
+        "uniform_nearest_scale": 0.2613065326633166,
+        "resized_sprite": [
+          60,
+          89
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "motions_sheet",
+        "phase": 4
+      }
+    },
+    "sit_down_1": {
+      "rect": {
+        "x": 192,
+        "y": 1456,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_down_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        4,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          97,
+          20,
+          302,
+          372
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          61,
+          104
+        ],
+        "paste_offset": [
+          18,
+          4
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 1
+      }
+    },
+    "sit_down_2": {
+      "rect": {
+        "x": 288,
+        "y": 1456,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_down_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        20,
+        12,
+        81,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          338,
+          47,
+          544,
+          372
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          61,
+          96
+        ],
+        "paste_offset": [
+          20,
+          12
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 2
+      }
+    },
+    "sit_down_3": {
+      "rect": {
+        "x": 384,
+        "y": 1456,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_down_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        22,
+        26,
+        84,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          598,
+          95,
+          807,
+          372
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          62,
+          82
+        ],
+        "paste_offset": [
+          22,
+          26
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 3
+      }
+    },
+    "sit_down_4": {
+      "rect": {
+        "x": 0,
+        "y": 1568,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_down_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        31,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          868,
+          120,
+          1075,
+          379
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          61,
+          77
+        ],
+        "paste_offset": [
+          18,
+          31
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 4
+      }
+    },
+    "sit_swing_1": {
+      "rect": {
+        "x": 96,
+        "y": 1568,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_swing_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        27,
+        84,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          76,
+          404,
+          299,
+          678
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          66,
+          81
+        ],
+        "paste_offset": [
+          18,
+          27
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 1
+      }
+    },
+    "sit_swing_2": {
+      "rect": {
+        "x": 192,
+        "y": 1568,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_swing_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        27,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          348,
+          404,
+          556,
+          678
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          61,
+          81
+        ],
+        "paste_offset": [
+          18,
+          27
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 2
+      }
+    },
+    "sit_swing_3": {
+      "rect": {
+        "x": 288,
+        "y": 1568,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_swing_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        29,
+        85,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          604,
+          403,
+          830,
+          670
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          67,
+          79
+        ],
+        "paste_offset": [
+          18,
+          29
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 3
+      }
+    },
+    "sit_swing_4": {
+      "rect": {
+        "x": 384,
+        "y": 1568,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_swing_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        27,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          871,
+          404,
+          1079,
+          678
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          61,
+          81
+        ],
+        "paste_offset": [
+          18,
+          27
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 4
+      }
+    },
+    "land_1": {
+      "rect": {
+        "x": 0,
+        "y": 1680,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/land_1.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        17,
+        9,
+        82,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          83,
+          686,
+          302,
+          1022
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          65,
+          99
+        ],
+        "paste_offset": [
+          17,
+          9
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 1
+      }
+    },
+    "land_2": {
+      "rect": {
+        "x": 96,
+        "y": 1680,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/land_2.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        26,
+        85,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          336,
+          746,
+          564,
+          1022
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          67,
+          82
+        ],
+        "paste_offset": [
+          18,
+          26
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 2
+      }
+    },
+    "land_3": {
+      "rect": {
+        "x": 192,
+        "y": 1680,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/land_3.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        14,
+        82,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          614,
+          704,
+          830,
+          1022
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          64,
+          94
+        ],
+        "paste_offset": [
+          18,
+          14
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 3
+      }
+    },
+    "land_4": {
+      "rect": {
+        "x": 288,
+        "y": 1680,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/land_4.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        7,
+        75,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          875,
+          679,
+          1067,
+          1022
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          57,
+          101
+        ],
+        "paste_offset": [
+          18,
+          7
+        ],
+        "registration": "feet",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": true,
+        "source_stage": "seating_sheet",
+        "phase": 4
+      }
+    },
+    "sit_talk_small": {
+      "rect": {
+        "x": 384,
+        "y": 1680,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_talk_small.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        31,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          83,
+          1050,
+          293,
+          1322
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          62,
+          80
+        ],
+        "paste_offset": [
+          17,
+          31
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": false,
+        "composition": {
+          "operation": "literal generated expression crop over new seated base",
+          "source_rect": [
+            48,
+            69,
+            55,
+            72
+          ],
+          "paste_offset": [
+            48,
+            70
+          ],
+          "body_source_frame": "sit_down_4",
+          "all_pixels_outside_expression_patch_identical_to_seated_base": true
+        },
+        "source_stage": "seating_sheet",
+        "phase": "sit_talk_small"
+      }
+    },
+    "sit_talk_open": {
+      "rect": {
+        "x": 0,
+        "y": 1792,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_talk_open.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        31,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          349,
+          1049,
+          560,
+          1322
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          62,
+          81
+        ],
+        "paste_offset": [
+          17,
+          31
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": false,
+        "composition": {
+          "operation": "literal generated expression crop over new seated base",
+          "source_rect": [
+            47,
+            67,
+            56,
+            72
+          ],
+          "paste_offset": [
+            47,
+            68
+          ],
+          "body_source_frame": "sit_down_4",
+          "all_pixels_outside_expression_patch_identical_to_seated_base": true
+        },
+        "source_stage": "seating_sheet",
+        "phase": "sit_talk_open"
+      }
+    },
+    "sit_blink": {
+      "rect": {
+        "x": 96,
+        "y": 1792,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_blink.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        31,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          606,
+          1053,
+          818,
+          1322
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          63,
+          79
+        ],
+        "paste_offset": [
+          16,
+          31
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": false,
+        "composition": {
+          "operation": "literal generated expression crop over new seated base",
+          "source_rect": [
+            38,
+            59,
+            65,
+            73
+          ],
+          "paste_offset": [
+            38,
+            59
+          ],
+          "body_source_frame": "sit_down_4",
+          "all_pixels_outside_expression_patch_identical_to_seated_base": true
+        },
+        "source_stage": "seating_sheet",
+        "phase": "sit_blink"
+      }
+    },
+    "sit_happy": {
+      "rect": {
+        "x": 192,
+        "y": 1792,
+        "w": 96,
+        "h": 112
+      },
+      "file": "frames/sit_happy.png",
+      "anchor": {
+        "x": 48,
+        "y": 108
+      },
+      "opaque_bounds": [
+        18,
+        31,
+        79,
+        108
+      ],
+      "processing": {
+        "stage": "generated",
+        "source_crop_alpha128": [
+          873,
+          1053,
+          1085,
+          1322
+        ],
+        "uniform_nearest_scale": 0.29545454545454547,
+        "resized_sprite": [
+          63,
+          79
+        ],
+        "paste_offset": [
+          16,
+          31
+        ],
+        "registration": "head",
+        "alpha_threshold": 128,
+        "palette": "exact original 31 colors",
+        "creative_redrawing": false,
+        "independently_generated_body_pose": false,
+        "composition": {
+          "operation": "literal generated expression crop over new seated base",
+          "source_rect": [
+            38,
+            59,
+            65,
+            73
+          ],
+          "paste_offset": [
+            38,
+            59
+          ],
+          "body_source_frame": "sit_down_4",
+          "all_pixels_outside_expression_patch_identical_to_seated_base": true
+        },
+        "source_stage": "seating_sheet",
+        "phase": "sit_happy"
+      }
+    }
+  },
+  "animations": {
+    "idle": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "idle",
+          "duration_ms": 3500
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 130
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 1900
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "listening": {
+      "loop": true,
+      "fallback": "idle",
+      "visual_status": "reuses_idle_blink",
+      "frames": [
+        {
+          "frame": "idle",
+          "duration_ms": 2500
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 130
+        }
+      ]
+    },
+    "thinking": {
+      "loop": true,
+      "fallback": "idle",
+      "visual_status": "reuses_idle_blink",
+      "frames": [
+        {
+          "frame": "idle",
+          "duration_ms": 1500
+        },
+        {
+          "frame": "blink",
+          "duration_ms": 170
+        }
+      ]
+    },
+    "speaking": {
+      "loop": true,
+      "visual_status": "single_generated_open_mouth_and_idle; cadence_only",
+      "frames": [
+        {
+          "frame": "talk",
+          "duration_ms": 110
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 90
+        },
+        {
+          "frame": "talk",
+          "duration_ms": 140
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 100
+        }
+      ]
+    },
+    "happy": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "happy",
+          "duration_ms": 1800
+        },
+        {
+          "frame": "idle",
+          "duration_ms": 250
+        }
+      ]
+    },
+    "annoyed": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "annoyed",
+          "duration_ms": 2200
+        }
+      ]
+    },
+    "shy": {
+      "loop": true,
+      "frames": [
+        {
+          "frame": "shy",
+          "duration_ms": 2200
+        }
+      ]
+    },
+    "sit": {
+      "loop": true,
+      "stationary": true,
+      "visual_status": "new ground-seated resting body; original v2 sit frame retained",
+      "frames": [
+        {
+          "frame": "sit_down_4",
+          "duration_ms": 2800
+        },
+        {
+          "frame": "sit_blink",
+          "duration_ms": 130
+        }
+      ]
+    },
+    "surprised": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "surprised",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "sad": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "sad",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "walk_right": {
+      "loop": true,
+      "visual_status": "four_generated_poses; opposite_leg_contact_and_passing_phases",
+      "frames": [
+        {
+          "frame": "walk_right_1",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_right_2",
+          "duration_ms": 120
+        },
+        {
+          "frame": "walk_right_3",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_right_4",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "walk_left": {
+      "loop": true,
+      "visual_status": "exact_pixel_mirrors_of_walk_right",
+      "frames": [
+        {
+          "frame": "walk_left_1",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_left_2",
+          "duration_ms": 120
+        },
+        {
+          "frame": "walk_left_3",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_left_4",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "walk_down": {
+      "loop": true,
+      "visual_status": "four_generated_front_facing_poses; opposite_leg_contact_and_passing_phases",
+      "frames": [
+        {
+          "frame": "walk_down_1",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_down_2",
+          "duration_ms": 120
+        },
+        {
+          "frame": "walk_down_3",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_down_4",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "walk_up": {
+      "loop": true,
+      "visual_status": "four_generated_rear_facing_poses; opposite_leg_contact_and_passing_phases",
+      "frames": [
+        {
+          "frame": "walk_up_1",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_up_2",
+          "duration_ms": 120
+        },
+        {
+          "frame": "walk_up_3",
+          "duration_ms": 140
+        },
+        {
+          "frame": "walk_up_4",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "headpat": {
+      "loop": true,
+      "fallback": "happy",
+      "visual_status": "four_generated_head_and_shoulder_reactions; exact_anchored_idle_lower_body",
+      "frames": [
+        {
+          "frame": "headpat_1",
+          "duration_ms": 180
+        },
+        {
+          "frame": "headpat_2",
+          "duration_ms": 180
+        },
+        {
+          "frame": "headpat_3",
+          "duration_ms": 220
+        },
+        {
+          "frame": "headpat_4",
+          "duration_ms": 220
+        }
+      ]
+    },
+    "sleepy": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "sleepy",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "laughing": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "laughing",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "smug": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "smug",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "worried": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "worried",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "irritated": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "irritated",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "curious": {
+      "loop": true,
+      "visual_status": "dedicated_generated_expression; canonical_idle_body",
+      "frames": [
+        {
+          "frame": "curious",
+          "duration_ms": 2400
+        }
+      ]
+    },
+    "wave": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_independently_generated_arm_and_body_gesture_phases; canonical_planted_legs",
+      "frames": [
+        {
+          "frame": "wave_1",
+          "duration_ms": 400
+        },
+        {
+          "frame": "wave_2",
+          "duration_ms": 650
+        },
+        {
+          "frame": "wave_3",
+          "duration_ms": 650
+        },
+        {
+          "frame": "wave_4",
+          "duration_ms": 700
+        }
+      ]
+    },
+    "stretch": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_independently_generated_arm_and_body_gesture_phases; canonical_planted_legs",
+      "frames": [
+        {
+          "frame": "stretch_1",
+          "duration_ms": 450
+        },
+        {
+          "frame": "stretch_2",
+          "duration_ms": 650
+        },
+        {
+          "frame": "stretch_3",
+          "duration_ms": 1000
+        },
+        {
+          "frame": "stretch_4",
+          "duration_ms": 500
+        }
+      ]
+    },
+    "yawn": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_independently_generated_arm_and_body_gesture_phases; canonical_planted_legs",
+      "frames": [
+        {
+          "frame": "yawn_1",
+          "duration_ms": 450
+        },
+        {
+          "frame": "yawn_2",
+          "duration_ms": 800
+        },
+        {
+          "frame": "yawn_3",
+          "duration_ms": 950
+        },
+        {
+          "frame": "yawn_4",
+          "duration_ms": 600
+        }
+      ]
+    },
+    "adjust_ribbon": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_independently_generated_arm_and_body_gesture_phases; canonical_planted_legs",
+      "frames": [
+        {
+          "frame": "adjust_ribbon_1",
+          "duration_ms": 450
+        },
+        {
+          "frame": "adjust_ribbon_2",
+          "duration_ms": 700
+        },
+        {
+          "frame": "adjust_ribbon_3",
+          "duration_ms": 850
+        },
+        {
+          "frame": "adjust_ribbon_4",
+          "duration_ms": 600
+        }
+      ]
+    },
+    "crossed_arms": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_distinct_generated_body_poses; no idle lower-body substitution",
+      "frames": [
+        {
+          "frame": "crossed_arms_1",
+          "duration_ms": 180
+        },
+        {
+          "frame": "crossed_arms_2",
+          "duration_ms": 600
+        },
+        {
+          "frame": "crossed_arms_3",
+          "duration_ms": 700
+        },
+        {
+          "frame": "crossed_arms_4",
+          "duration_ms": 480
+        }
+      ]
+    },
+    "head_tilt": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_distinct_generated_body_poses; no idle lower-body substitution",
+      "frames": [
+        {
+          "frame": "head_tilt_1",
+          "duration_ms": 180
+        },
+        {
+          "frame": "head_tilt_2",
+          "duration_ms": 300
+        },
+        {
+          "frame": "head_tilt_3",
+          "duration_ms": 500
+        },
+        {
+          "frame": "head_tilt_4",
+          "duration_ms": 280
+        }
+      ]
+    },
+    "carried": {
+      "loop": true,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_distinct_generated_body_poses; no idle lower-body substitution",
+      "frames": [
+        {
+          "frame": "carried_1",
+          "duration_ms": 150
+        },
+        {
+          "frame": "carried_2",
+          "duration_ms": 190
+        },
+        {
+          "frame": "carried_3",
+          "duration_ms": 190
+        },
+        {
+          "frame": "carried_4",
+          "duration_ms": 210
+        }
+      ]
+    },
+    "sit_down": {
+      "loop": false,
+      "fallback": "sit",
+      "stationary": true,
+      "visual_status": "four_distinct_generated_body_poses; no idle lower-body substitution",
+      "frames": [
+        {
+          "frame": "sit_down_1",
+          "duration_ms": 100
+        },
+        {
+          "frame": "sit_down_2",
+          "duration_ms": 130
+        },
+        {
+          "frame": "sit_down_3",
+          "duration_ms": 160
+        },
+        {
+          "frame": "sit_down_4",
+          "duration_ms": 220
+        }
+      ]
+    },
+    "sit_swing": {
+      "loop": true,
+      "fallback": "sit",
+      "stationary": true,
+      "visual_status": "four_distinct_generated_body_poses; no idle lower-body substitution",
+      "frames": [
+        {
+          "frame": "sit_swing_1",
+          "duration_ms": 220
+        },
+        {
+          "frame": "sit_swing_2",
+          "duration_ms": 200
+        },
+        {
+          "frame": "sit_swing_3",
+          "duration_ms": 220
+        },
+        {
+          "frame": "sit_swing_4",
+          "duration_ms": 260
+        }
+      ]
+    },
+    "land": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "four_distinct_generated_body_poses; no idle lower-body substitution",
+      "frames": [
+        {
+          "frame": "land_1",
+          "duration_ms": 110
+        },
+        {
+          "frame": "land_2",
+          "duration_ms": 130
+        },
+        {
+          "frame": "land_3",
+          "duration_ms": 160
+        },
+        {
+          "frame": "land_4",
+          "duration_ms": 200
+        }
+      ]
+    },
+    "stand_up": {
+      "loop": false,
+      "fallback": "idle",
+      "stationary": true,
+      "visual_status": "exact reverse of generated sit-down body and knee transition",
+      "frames": [
+        {
+          "frame": "sit_down_4",
+          "duration_ms": 180
+        },
+        {
+          "frame": "sit_down_3",
+          "duration_ms": 160
+        },
+        {
+          "frame": "sit_down_2",
+          "duration_ms": 130
+        },
+        {
+          "frame": "sit_down_1",
+          "duration_ms": 140
+        }
+      ]
+    }
+  },
+  "capabilities": {
+    "walking": true,
+    "directions": [
+      "front-three-quarter",
+      "right",
+      "left-mirrored",
+      "down-front",
+      "up-back"
+    ],
+    "generated_walk_poses": 12,
+    "generated_vertical_walk_poses": 8,
+    "mirrored_walk_poses": 4,
+    "expression_frames": [
+      "blink",
+      "talk",
+      "happy",
+      "annoyed",
+      "shy",
+      "surprised",
+      "sad",
+      "sleepy",
+      "laughing",
+      "smug",
+      "worried",
+      "irritated",
+      "curious"
+    ],
+    "sitting": true,
+    "standing_body": "Same generated talk-frame body reused; literal generated face-region crops only.",
+    "lip_sync": "One generated mouth-open drawing and idle mouth-closed drawing; timing only, not visemes.",
+    "headpat": true,
+    "generated_headpat_poses": 4,
+    "headpat_lower_body": "Exact idle pixels at y>=58; generated head and shoulders above.",
+    "stationary_gestures": [
+      "wave",
+      "stretch",
+      "yawn",
+      "adjust_ribbon"
+    ],
+    "generated_stationary_gesture_poses": 16,
+    "stationary_gesture_lower_body": "Exact canonical idle pixels for y>=80; feet remain planted.",
+    "dedicated_surprised_and_sad_art": true,
+    "new_body_motions": [
+      "crossed_arms",
+      "head_tilt",
+      "carried",
+      "sit_down",
+      "sit_swing",
+      "land",
+      "stand_up"
+    ],
+    "sitting_transitions": [
+      "sit_down",
+      "sit_swing",
+      "stand_up"
+    ],
+    "seated_conversation_frames": [
+      "sit_talk_small",
+      "sit_talk_open",
+      "sit_blink",
+      "sit_happy"
+    ],
+    "carried_dangling_legs": true,
+    "landing_knee_settle": true,
+    "new_motions_lower_body": "Generated knees/legs retained; no canonical idle leg crop."
+  },
+  "source_metadata": "generation.json",
+  "hit_regions": {
+    "head": {
+      "shape": "ellipse",
+      "cx": 0.5,
+      "cy": 0.25,
+      "rx": 0.3,
+      "ry": 0.22
+    },
+    "seated_head": {
+      "shape": "ellipse",
+      "cx": 0.5,
+      "cy": 0.46,
+      "rx": 0.3,
+      "ry": 0.22
+    }
+  }
+}

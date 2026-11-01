@@ -8,7 +8,7 @@ from .config import IdleActionConfig
 from .models import BusyState
 
 
-IDLE_ACTIONS = ("wave", "stretch", "yawn", "adjust_ribbon")
+IDLE_ACTIONS = ("wave", "stretch", "yawn", "adjust_ribbon", "crossed_arms", "head_tilt", "sit_swing")
 
 
 class IdleActionPlanner:
@@ -27,7 +27,8 @@ class IdleActionPlanner:
         self._active, self._until = None, 0.0
         self._schedule(now)
 
-    def step(self, now, *, busy: BusyState, available, stationary=True, allow_start=True, durations=None):
+    def step(self, now, *, busy: BusyState, available, stationary=True, allow_start=True, durations=None,
+             actions=IDLE_ACTIONS):
         if not self.config.enabled or busy.action_block_reason:
             if self._active or self._due is None:
                 self.cancel(now)
@@ -41,9 +42,9 @@ class IdleActionPlanner:
             self._schedule(now)
         if now < self._due or not stationary or not allow_start:
             return None
-        choices = [name for name in IDLE_ACTIONS if name in available and name not in self._recent]
+        choices = [name for name in actions if name in available and name not in self._recent]
         if not choices:
-            choices = [name for name in IDLE_ACTIONS if name in available]
+            choices = [name for name in actions if name in available]
         if not choices:
             self._schedule(now)
             return None

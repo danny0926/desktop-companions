@@ -95,6 +95,9 @@ class ProactiveConfig:
     screen_event_ttl_seconds: float = 60
     screen_max_idle_seconds: float = 60
     screen_scope: str = "active_window"
+    companion_min_seconds: float = 360
+    companion_max_seconds: float = 660
+    companion_max_idle_seconds: float = 300
 
     def __post_init__(self):
         if not isinstance(self.enabled, bool) or self.mode not in ("quiet", "occasional", "lively"):
@@ -112,6 +115,8 @@ class ProactiveConfig:
             raise ValueError("returned_input_seconds must be below return_after_idle_seconds.")
         if self.screen_min_seconds > self.screen_max_seconds:
             raise ValueError("screen_min_seconds must not exceed screen_max_seconds.")
+        if self.companion_min_seconds > self.companion_max_seconds:
+            raise ValueError("companion_min_seconds must not exceed companion_max_seconds.")
 
     @property
     def effective_cooldown_seconds(self) -> float:

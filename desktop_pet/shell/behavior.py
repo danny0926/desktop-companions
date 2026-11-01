@@ -15,7 +15,7 @@ from desktop_pet.behavior.topology import DesktopTopology
 class BehaviorBridge:
     def __init__(self, atlas, config_path: Path, emit, *, roaming=True, mode="occasional",
                  screen_enabled=None, screen_frequency="normal", screen_scope=None, idle_actions=None,
-                 return_after_idle_seconds=None):
+                 return_after_idle_seconds=None, seated=False):
         self.config = load_behavior_config(config_path)
         self.emit = emit
         self.roaming_enabled, self.mode = bool(roaming), mode
@@ -35,6 +35,10 @@ class BehaviorBridge:
         self.topology = None
         self._latest_action = None
         self._manual_until = float("-inf")
+        self.seated = bool(seated)
+        self._posture_transition = None
+        self._posture_until = 0.0
+        self._was_dragging = False
         self.reset_geometry(atlas)
 
     def _decision(self, decision):
@@ -51,7 +55,8 @@ class BehaviorBridge:
     def reset_geometry(self, atlas):
         self.geometry = SpriteGeometry.from_frame(atlas.width, atlas.height, atlas.anchor, padding=(12, 10, 12, 10))
         self.action_durations = ({name: atlas.animation_duration(name)
-                                  for name in ("wave", "stretch", "yawn", "adjust_ribbon")
+                                  for name in ("wave", "stretch", "yawn", "adjust_ribbon", "crossed_arms", "head_tilt",
+                                               "sit_down", "sit_swing", "stand_up", "carried", "land")
                                   if name in atlas.manifest["animations"]}
                                  if hasattr(atlas, "animation_duration") else {})
         self.planner = RoamingPlanner(replace(self.config.roaming, enabled=self.roaming_enabled), sprite=self.geometry)
@@ -91,7 +96,7 @@ class BehaviorBridge:
         self.idle_actions.cancel(time.monotonic())
         self.proactive.config = self._proactive_config()
         self.proactive.reset_screen_schedule()
-        self.proactive.cancel_pending(reason="settings_changed")
+        self.proactive.note_presentation_interaction(time.monotonic())
         self._latest_action = None
 
     def note_manual_interaction(self, now: float):
@@ -99,6 +104,27 @@ class BehaviorBridge:
         self._manual_until = now + self.config.proactive.manual_cooldown_seconds
         self.proactive.note_manual_interaction(now)
         self.idle_actions.cancel(now)
+
+    def note_presentation_interaction(self, now: float):
+        self._latest_action = None
+        self._manual_until = now + self.config.proactive.manual_cooldown_seconds
+        self.proactive.note_presentation_interaction(now)
+        self.idle_actions.cancel(now)
+
+    def set_seated(self, seated: bool, *, now: float | None = None):
+        now = time.monotonic() if now is None else now
+        self.seated = bool(seated)
+        self.planner.reset()
+        self.idle_actions.cancel(now)
+        self._posture_transition = "sit_down" if self.seated else "stand_up"
+        self._posture_until = now + self.action_durations.get(self._posture_transition, .1)
+
+    def _stationary(self, position, state, requested, reason, animations, *fallbacks):
+        animation = next((name for name in (requested, *fallbacks, "idle") if name in animations), "idle")
+        self.last_motion = MotionDecision(tuple(position), state, animation, reason, False,
+                                          (position[0] + self.geometry.anchor_x, position[1] + self.geometry.anchor_y),
+                                          animation != requested)
+        return self.last_motion
 
     def accepts_action(self, decision):
         now = time.monotonic()
@@ -131,10 +157,31 @@ class BehaviorBridge:
 
     def step(self, now: float, *, position, room, mouse, busy, animations, allow_idle_actions=True):
         dt, self._last_tick = max(0, now - self._last_tick), now
+        if busy.dragging:
+            self._was_dragging = True
+            self.planner.reset()
+            self.idle_actions.cancel(now)
+            return self._stationary(position, MotionState.DRAGGED, "carried", "carrying", animations, "dragged")
+        if self._was_dragging:
+            self._was_dragging = False
+            # The ordinary landing ends standing. An explicitly seated pet
+            # lowers back into its seat instead of briefly popping upright.
+            self._posture_transition = "sit_down" if self.seated else "land"
+            self._posture_until = now + self.action_durations.get(self._posture_transition, .1)
+        if self._posture_transition and now < self._posture_until:
+            state = MotionState.SEATED if self.seated else MotionState.PAUSED
+            return self._stationary(position, state, self._posture_transition, "posture_transition", animations,
+                                    "sit" if self.seated else "idle")
+        self._posture_transition = None
+        if self.seated:
+            action = self.idle_actions.step(now, busy=busy, available=animations, allow_start=allow_idle_actions,
+                                            durations=self.action_durations, actions=("sit_swing",))
+            return self._stationary(position, MotionState.SEATED, action or "sit", "seated", animations, "rest")
         previous_action = self.last_motion and self.last_motion.state == MotionState.IDLE_ACTION
         stationary = self.last_motion is None or not self.last_motion.moved
         action = self.idle_actions.step(now, busy=busy, available=animations, stationary=stationary,
-                                        allow_start=allow_idle_actions, durations=self.action_durations)
+                                        allow_start=allow_idle_actions, durations=self.action_durations,
+                                        actions=("wave", "stretch", "yawn", "adjust_ribbon", "crossed_arms", "head_tilt"))
         if action:
             if not previous_action:
                 self.planner.reset()

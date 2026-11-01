@@ -15,8 +15,9 @@ import traceback
 from .agent.actions import UserAction, format_user_action, parse_user_action
 from .shell.controller import ConversationController
 from .shell.behavior import BehaviorBridge
+from .shell.carry import CarryMotion
 from .shell.interaction import HeadpatGesture, head_hit
-from desktop_pet.behavior import BusyState, MotionState, ObservationSource
+from desktop_pet.behavior import BusyState, MotionState, ObservationSource, ProactiveEventKind
 from .shell.playback import WavePlayer
 from .shell.recovery import load_last_reply, store_last_reply
 from .shell.replay import ReplayStore
@@ -45,7 +46,8 @@ class PetApplication:
         self.log_path = Path(config["event_log"])
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         self.preferences = {"topmost": True, "subtitles": True, "speak": True, "size": "small",
-                            "skin": config.get("default_skin", "pixel_v2"), "roaming": True, "proactive": "occasional",
+                            "skin": config.get("default_skin", "pixel_v2"), "pixel_v3_migrated": False,
+                            "roaming": True, "seated": False, "proactive": "occasional",
                             "screen_enabled": config.get("screen_observation_enabled", True),
                             "screen_frequency": "normal", "screen_scope": "active_window",
                             "idle_actions": True, "return_after_idle_seconds": 180}
@@ -102,9 +104,14 @@ class PetApplication:
         self._motion_start = 0.0
         self._drag = None
         self._dragged = False
+        self._drag_press_at = 0.0
+        self._carry = CarryMotion()
+        self._carry_grip = (0.0, 0.0)
+        self._carry_sample = None
         self._touch_gesture: HeadpatGesture | None = None
         self._touch_reaction_until = 0.0
         self._touch_animation = "happy"
+        self._touch_is_presentation = False
         self._last_touch_reply_at = float("-inf")
         self._turn_is_touch = False
         self._last_frame = None
@@ -116,6 +123,8 @@ class PetApplication:
         self._last_motion_state = None
         self._health_log_signatures = {}
         self._activity_signature = None
+        self._proactive_status_signature = None
+        self._last_proactive_status_log_at = float("-inf")
         self._project_root = Path(__file__).resolve().parents[1]
         self.replays = ReplayStore(self.state_dir / "voice-library", workspace=self._project_root)
         if not smoke:
@@ -129,6 +138,12 @@ class PetApplication:
         for name, value in config.get("skins", {}).items():
             path = Path(value)
             self._skin_paths[name] = path if path.is_absolute() else self._project_root / path
+        if "pixel_v3" in self._skin_paths and not self._skin_paths["pixel_v3"].is_file():
+            self._skin_paths.pop("pixel_v3")
+        if "pixel_v3" in self._skin_paths and not self.preferences["pixel_v3_migrated"]:
+            if self.preferences["skin"] == "pixel_v2":
+                self.preferences["skin"] = "pixel_v3"
+            self.preferences["pixel_v3_migrated"] = True
         if self.preferences["skin"] not in self._skin_paths:
             self.preferences["skin"] = "pixel_v2"
         self.status = tk.StringVar(root, "摸摸頭、點身體聊天，或按住身體拖曳。")
@@ -140,6 +155,8 @@ class PetApplication:
         self.profile_var = tk.StringVar(root, "quality_40")
         self.skin_var = tk.StringVar(root, self.preferences["skin"])
         self.roaming_var = tk.BooleanVar(root, bool(self.preferences["roaming"]))
+        self.seated_var = tk.BooleanVar(root, bool(self.preferences["seated"]))
+        self.seat_button_var = tk.StringVar(root, "起來走走" if self.seated_var.get() else "坐在原地")
         self.proactive_var = tk.StringVar(root, self.preferences["proactive"] if self.preferences["proactive"] in {"quiet", "occasional", "lively"} else "occasional")
         self.screen_enabled_var = tk.BooleanVar(root, bool(self.preferences["screen_enabled"]))
         self.screen_frequency_var = tk.StringVar(root, self.preferences["screen_frequency"] if self.preferences["screen_frequency"] in {"less", "normal", "more"} else "normal")
@@ -155,10 +172,12 @@ class PetApplication:
         root.attributes("-transparentcolor", CHROMA)
         root.attributes("-topmost", self.topmost_var.get())
         self.atlas = SpriteAtlas(root, self._skin_paths[self.skin_var.get()], self.size_var.get())
+        self._animation = self._posture_animation("idle")
+        initial_frame = self.atlas.frame(self._animation, 0)
         self.canvas = tk.Canvas(root, bg=CHROMA, highlightthickness=0, borderwidth=0,
                                 width=self.atlas.width + 24, height=self.atlas.height + 20)
         self.canvas.pack()
-        self.sprite_item = self.canvas.create_image(12, 10, image=self.atlas.images["idle"], anchor="nw")
+        self.sprite_item = self.canvas.create_image(12, 10, image=self.atlas.images[initial_frame], anchor="nw")
         for widget in (self.canvas,):
             widget.bind("<ButtonPress-1>", self._drag_start)
             widget.bind("<B1-Motion>", self._drag_move)
@@ -178,7 +197,7 @@ class PetApplication:
                                         self.events.put, roaming=self.roaming_var.get(), mode=self.proactive_var.get(),
                                         screen_enabled=self.screen_enabled_var.get(), screen_frequency=self.screen_frequency_var.get(),
                                         screen_scope=self.screen_scope_var.get(), idle_actions=self.idle_actions_var.get(),
-                                        return_after_idle_seconds=self.return_idle_var.get())
+                                        return_after_idle_seconds=self.return_idle_var.get(), seated=self.seated_var.get())
         self.behavior.update_monitors(monitor_layout())
         if self.position is None:
             self._default_position()
@@ -246,7 +265,8 @@ class PetApplication:
         x, y, _, _ = window_rect(self.native.hwnd)
         data = {"x": x, "y": y, "topmost": self.topmost_var.get(), "subtitles": self.subtitle_var.get(),
                 "speak": self.speak_var.get(), "size": self.size_var.get(), "skin": self.skin_var.get(),
-                "roaming": self.roaming_var.get(), "proactive": self.proactive_var.get(),
+                "pixel_v3_migrated": self.preferences.get("pixel_v3_migrated", False),
+                "roaming": self.roaming_var.get(), "seated": self.seated_var.get(), "proactive": self.proactive_var.get(),
                 "screen_enabled": self.screen_enabled_var.get(), "screen_frequency": self.screen_frequency_var.get(),
                 "screen_scope": self.screen_scope_var.get(), "idle_actions": self.idle_actions_var.get(),
                 "return_after_idle_seconds": self.return_idle_var.get(),
@@ -286,7 +306,8 @@ class PetApplication:
         else:
             left, top, _, _ = window_rect(self.native.hwnd)
             x, y = event.x_root - left, event.y_root - top
-        region = self.atlas.manifest.get("hit_regions", {}).get("head")
+        regions = self.atlas.manifest.get("hit_regions", {})
+        region = regions.get("seated_head", regions.get("head")) if self.seated_var.get() else regions.get("head")
         return head_hit(x - 12, y - 10, self.atlas.width, self.atlas.height, region)
 
     def _pointer_hover(self, event):
@@ -299,17 +320,20 @@ class PetApplication:
         now = time.monotonic() if now is None else now
         animation = {"headpat": "headpat", "cheek_poke": "surprised", "wave": "wave",
                      "hug": "shy", "hand_hold": "shy"}.get(action.kind, "happy")
-        self._touch_animation = self.atlas.resolve_animation(animation)
+        self._touch_animation = self._posture_animation(animation)
+        self._touch_is_presentation = False
         self._touch_reaction_until = now + 1.6
         self._motion = "idle"
         self._set_animation(self._touch_animation)
         # The visual is local and is visible before any dialogue request starts.
-        frame = self.atlas.frame(self._touch_animation, (now - self._animation_start) * 1000)
+        frame = self.atlas.frame(self._posture_animation(self._touch_animation), (now - self._animation_start) * 1000)
         self.canvas.itemconfigure(self.sprite_item, image=self.atlas.images[frame])
         self.canvas.coords(self.sprite_item, 12, 10)
         self._last_frame = frame
 
     def _drag_start(self, event):
+        self._carry.reset()
+        self._carry_sample = None
         self._dragged = False
         if not getattr(event, "state", 0) & 0x0001 and self._pointer_on_head(event):
             self._manual_interaction("headpat", interrupt_touch=False)
@@ -318,11 +342,11 @@ class PetApplication:
             self._touch_gesture = HeadpatGesture(now, event.x_root, event.y_root)
             self._react_to_action(UserAction("headpat", "輕輕摸頭", "mouse"), now=now)
             return
-        self._manual_interaction("drag")
         self._touch_gesture = None
         self._touch_reaction_until = 0
         x, y, _, _ = window_rect(self.native.hwnd)
         self._drag = event.x_root, event.y_root, x, y
+        self._drag_press_at = time.monotonic()
 
     def _drag_move(self, event):
         if self._touch_gesture is not None:
@@ -332,9 +356,14 @@ class PetApplication:
             return
         sx, sy, x, y = self._drag
         dx, dy = event.x_root - sx, event.y_root - sy
-        if abs(dx) + abs(dy) > 5:
+        if not self._dragged and abs(dx) + abs(dy) > 5:
+            self._manual_interaction("drag")
             self._dragged = True
+            scale = float(self.atlas.scale)
+            self._carry_grip = ((sx - x - 12) / scale, (sy - y - 10) / scale)
+            self._carry.begin((sx, sy), self._drag_press_at, scale=scale)
         if self._dragged:
+            self._carry.update((event.x_root, event.y_root), time.monotonic())
             self._move(x + dx, y + dy)
 
     def _drag_end(self, event):
@@ -354,6 +383,7 @@ class PetApplication:
         dragged = self._dragged
         self._drag = None
         if dragged:
+            self._carry.release(time.monotonic())
             self.behavior.planner.reset()
             self._save()
             self._log("dragged", rect=window_rect(self.native.hwnd))
@@ -363,6 +393,8 @@ class PetApplication:
     def _build_menu(self):
         self.menu = tk.Menu(self.root, tearoff=False, font=("Microsoft JhengHei UI", 10), bg=BG, fg=INK)
         self.menu.add_command(label="和二乃聊天", command=self.open_chat)
+        self.menu.add_command(label=self.seat_button_var.get(), command=self.toggle_seated)
+        self._seat_menu_index = self.menu.index("end")
         self.interaction_menu = tk.Menu(self.menu, tearoff=False, font=("Microsoft JhengHei UI", 10), bg=BG, fg=INK)
         for label, kind, description in (("摸頭", "headpat", "輕輕摸頭"), ("戳臉", "cheek_poke", "輕輕戳臉"),
                                          ("打招呼", "wave", "向二乃揮手打招呼")):
@@ -387,7 +419,8 @@ class PetApplication:
         else:
             self.motion_menu = tk.Menu(self.menu, tearoff=False, font=("Microsoft JhengHei UI", 10), bg=BG, fg=INK)
             self.menu.add_cascade(label="二乃的小動作", menu=self.motion_menu)
-        for key, label in (("wave", "揮揮手"), ("stretch", "伸個懶腰"), ("yawn", "打呵欠"), ("adjust_ribbon", "整理髮帶")):
+        for key, label in (("wave", "揮揮手"), ("stretch", "伸個懶腰"), ("yawn", "打呵欠"), ("adjust_ribbon", "整理髮帶"),
+                           ("crossed_arms", "抱臂鬧彆扭"), ("head_tilt", "歪頭湊近"), ("sit_swing", "坐姿擺腿")):
             if key in self.atlas.manifest["animations"]:
                 self.motion_menu.add_command(label=label, command=lambda action=key: self._preview_sprite_action(action))
         if self.motion_menu.index("end") is None:
@@ -396,20 +429,45 @@ class PetApplication:
     def _preview_sprite_action(self, animation):
         if animation not in self.atlas.manifest["animations"]:
             return
-        self._manual_interaction("sprite_action")
+        self._presentation_interaction("sprite_action")
+        if animation == "sit_swing" and not self.seated_var.get():
+            self.set_seated(True)
         self.behavior.planner.reset()
         self._touch_gesture = None
-        self._touch_animation = animation
+        self._touch_animation = self._posture_animation(animation)
+        self._touch_is_presentation = True
         self._touch_reaction_until = time.monotonic() + self.atlas.animation_duration(animation)
         self._motion = "idle"
-        self._set_animation(animation)
+        self._set_animation(self._touch_animation)
         self._animation_start = time.monotonic()
+
+    def toggle_seated(self):
+        self.set_seated(not self.seated_var.get())
+
+    def set_seated(self, seated: bool):
+        self._presentation_interaction("seated_mode")
+        self._carry.reset()
+        self._carry_sample = None
+        self.seated_var.set(bool(seated))
+        self.behavior.set_seated(seated)
+        self._touch_gesture = None
+        self._touch_reaction_until = self._expression_until = self._reply_action_until = 0
+        self._motion = "idle"
+        self._set_animation("sit_down" if seated else "stand_up")
+        label = "起來走走" if seated else "坐在原地"
+        self.seat_button_var.set(label)
+        self.menu.entryconfigure(self._seat_menu_index, label=label)
+        self.status.set("二乃會坐在這裡陪你；聊天、摸頭和主動搭話仍可使用。" if seated else
+                        "二乃起來了，會依「自行走動」設定活動。")
+        self._save()
+        self._refresh_status_panel()
+        self._log("seated_mode", enabled=bool(seated), roaming_enabled=self.roaming_var.get())
 
     def _reply_animation(self, reply, now):
         animation = EXPRESSION_ANIMATION.get(reply.get("expression"), "idle")
         motion = reply.get("motion", "idle")
         self._reply_action_until = 0
-        if motion in {"wave", "stretch", "yawn", "adjust_ribbon"} and motion in self.atlas.manifest["animations"]:
+        if motion in {"wave", "stretch", "yawn", "adjust_ribbon", "crossed_arms", "head_tilt"} and motion in self.atlas.manifest["animations"]:
             animation = motion
             self._reply_action_until = now + self.atlas.animation_duration(motion)
         self._set_animation(animation)
@@ -448,7 +506,6 @@ class PetApplication:
         self._log("reply_restored", agent_turn_id=self._reply["turn_id"], provider_mode=self._reply["provider_mode"])
 
     def show_menu(self, x: int, y: int):
-        self._manual_interaction("menu")
         try:
             self.menu.tk_popup(x, y)
         finally:
@@ -479,7 +536,6 @@ class PetApplication:
     def open_chat(self):
         if self.closing:
             return
-        self._manual_interaction("open_chat")
         if self.chat and self.chat.winfo_exists():
             self.chat.deiconify()
             self.chat.lift()
@@ -502,7 +558,9 @@ class PetApplication:
         ttk.Label(header, text="日文對話 · 陪你待一會", style="Muted.Pet.TLabel").grid(row=1, column=0, sticky="w", pady=(2, 0))
         ttk.Button(header, text="語音收藏", style="Action.Pet.TButton", command=self.open_voice_library).grid(row=0, column=1, rowspan=2, padx=(6, 0))
         ttk.Button(header, text="設定", style="Pet.TButton", command=self.open_settings).grid(row=0, column=2, rowspan=2, padx=(6, 0))
-        ttk.Label(header, text="摸頭部互動 · 拖身體移動 · Shift 拖任意處", style="Muted.Pet.TLabel").grid(row=2, column=0, columnspan=3, sticky="w", pady=(8, 0))
+        ttk.Button(header, textvariable=self.seat_button_var, style="Action.Pet.TButton",
+                   command=self.toggle_seated).grid(row=2, column=2, sticky="e", pady=(8, 0))
+        ttk.Label(header, text="摸頭部互動 · 拖身體移動\nShift 拖任意處", style="Muted.Pet.TLabel").grid(row=2, column=0, columnspan=2, sticky="w", pady=(8, 0))
         body = ttk.Frame(window, style="Pet.TFrame", padding=(18, 0, 10, 0))
         body.grid(row=1, column=0, sticky="nsew")
         body.columnconfigure(0, weight=1)
@@ -615,7 +673,7 @@ class PetApplication:
             return "cooldown"
         if self._synthesis_pending or self._prewarm_pending or self.player.playing or self._audio_queue or (self.turn_id and not self._turn_complete):
             return "conversation_busy"
-        if self._chat_input_focused or now - self._last_typing_at < 2 or self._chat_draft().strip():
+        if now - self._last_typing_at < 2 or self._chat_draft().strip():
             return "chat_input_active"
         snapshot = self.behavior.latest_snapshot
         if snapshot and (snapshot.desktop_available is not True or snapshot.foreground_fullscreen):
@@ -713,6 +771,10 @@ class PetApplication:
         self._turn_is_touch = False
         self._touch_gesture = None
         self._touch_reaction_until = 0
+        self._carry.reset()
+        self._carry_sample = None
+        self._drag = None
+        self._dragged = False
         self._set_animation("idle")
         self._hide_bubble()
         if not silent:
@@ -819,7 +881,6 @@ class PetApplication:
     def open_voice_library(self):
         if self.closing:
             return
-        self._manual_interaction("voice_library")
         if self.voice_library and self.voice_library.winfo_exists():
             self.voice_library.deiconify()
             self.voice_library.lift()
@@ -924,15 +985,34 @@ class PetApplication:
         if record_id:
             self.toggle_favorite(record_id)
 
+    def _posture_animation(self, name: str) -> str:
+        # Whole-body standing expressions must not pop a seated pet upright.
+        # Old packs retain their existing sit pose; text/audio still respond.
+        if self.seated_var.get() and name not in {"sit", "sit_down", "sit_swing", "carried", "land"}:
+            name = "sit"
+        if name not in self.atlas.manifest.get("animations", {}):
+            name = {"sit_down": "sit", "sit_swing": "sit", "stand_up": "idle",
+                    "carried": "sit" if self.seated_var.get() else "dragged",
+                    "land": "sit" if self.seated_var.get() else "idle",
+                    "head_tilt": "curious", "crossed_arms": "annoyed"}.get(name, name)
+        return self.atlas.resolve_animation(name)
+
+    def _speaking_frame(self, now: float) -> str:
+        mouth = self.player.mouth()
+        if self.seated_var.get():
+            seated_mouth = "sit_" + mouth
+            if seated_mouth in self.atlas.manifest["frames"]:
+                return seated_mouth
+            return self.atlas.frame("sit", (now - self._animation_start) * 1000)
+        return self.atlas.resolve_frame(mouth)
+
     def _set_animation(self, name: str):
-        name = self.atlas.resolve_animation(name)
+        name = self._posture_animation(name)
         if self._animation != name:
             self._animation, self._animation_start = name, time.monotonic()
 
     def _input_focus(self, focused: bool):
         self._chat_input_focused = focused
-        if focused:
-            self._manual_interaction("input_focus")
 
     def _input_activity(self, event=None):
         self._last_typing_at = time.monotonic()
@@ -982,6 +1062,16 @@ class PetApplication:
             self._hide_bubble()
             self.status.set("想聊什麼都可以。")
 
+    def _presentation_interaction(self, reason: str):
+        # Moving or restyling the pet is not a new conversational turn. Keep
+        # already generated nonvisual speech eligible while delaying new topics.
+        decision = getattr(self, "_active_proactive_decision", None)
+        if (self._turn_is_proactive and decision is not None and
+                decision.event.kind == ProactiveEventKind.SCREEN_OBSERVATION):
+            self._manual_interaction(reason)
+        elif hasattr(self, "behavior"):
+            self.behavior.note_presentation_interaction(time.monotonic())
+
     def _busy_state(self, now: float, *, delivery=False) -> BusyState:
         snapshot = self.behavior.latest_snapshot
         voice = self.health.get("voice", {})
@@ -990,10 +1080,11 @@ class PetApplication:
         own = delivery and self._turn_is_proactive
         return BusyState(speaking=False if own else self.player.playing or bool(self._audio_queue),
                          typing=now - self._last_typing_at < 2,
-                         input_active=self._chat_input_focused,
+                         input_active=bool(self._chat_draft().strip()),
                          manual_chat=now - self._last_manual_at < 3,
-                         dragging=self._drag is not None,
-                         interacting=self._touch_visual_active(now),
+                         dragging=self._drag is not None and self._dragged,
+                         interacting=self._touch_visual_active(now) and not
+                                     (own and getattr(self, "_touch_is_presentation", False)),
                          chat_active=bool(self.chat and self.chat.winfo_exists() and self.chat.state() != "withdrawn"),
                          thinking=False if own else self._synthesis_pending and self._reply is None,
                          synthesizing=False if own else (self._prewarm_pending or self._synthesis_pending and self._reply is not None) and not waiting,
@@ -1021,7 +1112,13 @@ class PetApplication:
                 self._activity_signature = signature
                 self._log("activity_sample", source=snapshot.source.value, category=snapshot.category.value,
                           idle_seconds=snapshot.idle_seconds, fullscreen=snapshot.foreground_fullscreen,
-                          desktop_available=snapshot.desktop_available)
+                          desktop_available=snapshot.desktop_available, foreground_owned=snapshot.foreground_owned)
+            proactive_status = self.behavior.proactive.status(now)
+            reason = proactive_status["suppression_reason"]
+            if reason != self._proactive_status_signature and now - self._last_proactive_status_log_at >= 30:
+                self._proactive_status_signature = reason
+                self._last_proactive_status_log_at = now
+                self._log("proactive_status", **proactive_status)
         continuing = bool(self.player.item and self.player.item["turn_id"] == self.turn_id)
         if self._turn_is_proactive and self.turn_id and not self.controller.allow_delivery(self.turn_id, continuing=continuing):
             self.controller.cancel_proactive("eligibility_changed")
@@ -1031,6 +1128,8 @@ class PetApplication:
         area = self.behavior.topology.areas[0] if self.behavior.topology and self.behavior.topology.areas else None
         room = (area.left, area.top, area.right, area.bottom) if area else work_area(x, y, self.width, self.height)
         motion_busy = replace(busy, interacting=True) if now < self._reply_action_until else busy
+        if self._drag is not None and not self._dragged:
+            motion_busy = replace(motion_busy, interacting=True)
         motion = self.behavior.step(now, position=(x, y), room=room, mouse=cursor_position(), busy=motion_busy,
                                     animations=self.atlas.available_behavior_animations(),
                                     allow_idle_actions=now >= self._expression_until)
@@ -1044,8 +1143,12 @@ class PetApplication:
         walking_states = {MotionState.WALKING_LEFT, MotionState.WALKING_RIGHT, MotionState.WALKING_UP, MotionState.WALKING_DOWN}
         walk_step = motion.moved and motion.state in walking_states
         walk_stopped = previous_motion_state in walking_states and motion.state not in walking_states
-        if self._touch_visual_active(now):
+        if motion.state == MotionState.DRAGGED or motion.reason == "posture_transition":
+            self._set_animation(motion.animation)
+        elif self._touch_visual_active(now):
             self._set_animation(self._touch_animation)
+        elif motion.state == MotionState.SEATED:
+            self._set_animation(motion.animation)
         elif not busy.action_block_reason and (motion.moved or now >= self._expression_until):
             self._set_animation(motion.animation)
         elif busy.action_block_reason and previous_motion_state in walking_states and not self.player.playing:
@@ -1379,21 +1482,37 @@ class PetApplication:
                     self._set_animation(EXPRESSION_ANIMATION.get(self._reply.get("expression"), "idle"))
                 else:
                     self._set_animation("idle")
-        if self._touch_visual_active(now):
-            frame = self.atlas.frame(self._touch_animation, (now - self._animation_start) * 1000)
+        self._carry_sample = self._carry.sample(now)
+        sprite_image = None
+        if self._carry_sample is not None:
+            carried = self._carry_sample
+            carried_frame = carried.frame
+            if carried.phase == "landing" and self.seated_var.get():
+                posture = self._posture_animation("sit_down")
+                carried_frame = self.atlas.frame(posture, carried.progress * self.atlas.animation_duration(posture) * 1000)
+            frame, sprite_image = self.atlas.carry_image(carried_frame, carried.angle_degrees, self._carry_grip)
+        elif self._drag is not None and self._dragged:
+            # An aborted/reconfigured physics state must never revive the old
+            # elapsed-time pose loop while the pointer is still held.
+            frame, sprite_image = self.atlas.carry_image("carried_4", 0, self._carry_grip)
+        elif self._touch_visual_active(now):
+            frame = self.atlas.frame(self._posture_animation(self._touch_animation), (now - self._animation_start) * 1000)
         elif self.player.playing:
-            frame = self.atlas.resolve_frame(self.player.mouth())
+            frame = self._speaking_frame(now)
         else:
             if self._expression_until and now > self._expression_until and not self._synthesis_pending:
                 self._set_animation("idle")
                 self._expression_until = 0
             frame = self.atlas.frame(self._animation, (now - self._animation_start) * 1000)
         if frame != self._last_frame:
-            self.canvas.itemconfigure(self.sprite_item, image=self.atlas.images[frame])
+            self.canvas.itemconfigure(self.sprite_item, image=sprite_image if sprite_image is not None else self.atlas.images[frame])
             self._last_frame = frame
         elapsed = now - self._motion_start
         dx = dy = 0
-        if elapsed < 0.8 and not self._touch_visual_active(now):
+        if self._carry_sample is not None:
+            dy = round(self._carry_sample.offset_y * float(self.atlas.scale))
+        elif (elapsed < 0.8 and not self._touch_visual_active(now) and not self.seated_var.get()
+              and not (self._drag is not None and self._dragged)):
             wave = math.sin(elapsed * math.pi * 5)
             if self._motion == "nod":
                 dy = round(abs(wave) * 3)
@@ -1405,7 +1524,6 @@ class PetApplication:
         self.root.after(35, self._tick)
 
     def open_settings(self):
-        self._manual_interaction("settings")
         if self.settings and self.settings.winfo_exists():
             self.settings.deiconify()
             self.settings.lift()
@@ -1432,7 +1550,9 @@ class PetApplication:
         skin_row = ttk.Frame(frame, style="Pet.TFrame")
         skin_row.pack(fill="x", pady=(8, 0))
         ttk.Label(skin_row, text="外觀  ", style="Pet.TLabel").pack(side="left")
-        for label, value in (("像素 v2", "pixel_v2"), ("Q 版 v1", "q_v1")):
+        for label, value in (("像素 v3", "pixel_v3"), ("像素 v2", "pixel_v2"), ("Q 版 v1", "q_v1")):
+            if value not in self._skin_paths:
+                continue
             ttk.Radiobutton(skin_row, text=label, value=value, variable=self.skin_var,
                             command=self._skin_changed, style="Pet.TRadiobutton").pack(side="left", padx=4)
         pace_row = ttk.Frame(frame, style="Pet.TFrame")
@@ -1483,7 +1603,6 @@ class PetApplication:
         window.lift()
 
     def open_companion_settings(self):
-        self._manual_interaction("companion_settings")
         if self.companion_settings and self.companion_settings.winfo_exists():
             self.companion_settings.deiconify()
             self.companion_settings.lift()
@@ -1563,6 +1682,19 @@ class PetApplication:
         text += (f"看畫面：{'開啟' if self.screen_enabled_var.get() else '關閉'}，"
                  f"{'目前視窗' if self.screen_scope_var.get() == 'active_window' else '目前螢幕'}；"
                  "可從「看畫面與小動作」調整。\n")
+        reasons = {"input_active": "正在編寫草稿", "typing": "正在輸入", "manual_chat": "剛操作聊天",
+                   "manual_cooldown": "剛互動，稍後再聊", "presentation_cooldown": "剛調整外觀，稍後再聊",
+                   "speaking": "正在說話", "thinking": "正在想回覆",
+                   "synthesizing": "正在準備語音", "dragging": "正在拖曳", "interacting": "正在互動",
+                   "fullscreen": "目前是全螢幕", "desktop_unavailable": "桌面暫不可用", "hidden": "角色已隱藏",
+                   "resource_waiting": "等待語音資源", "voice_unavailable": "語音暫不可用",
+                   "own_foreground": "目前前景是二乃，略過看畫面", "user_idle": "等你操作電腦時再聊",
+                   "global_cooldown": "讓話題留點空間", "event_cooldown": "稍後換個話題", "hourly_budget": "這一小時先安靜陪伴",
+                   "quiet_mode": "安靜陪伴", "awaiting_event": "等適合的時機", "no_observation": "等待桌面狀態"}
+        proactive = self.behavior.proactive.status()
+        reason = proactive["suppression_reason"]
+        text += f"陪伴姿勢：{'坐在原地' if self.seated_var.get() else '自由活動'}\n"
+        text += "主動搭話：" + reasons.get(reason, reason or "這次已準備開口") + "\n"
         details = self.diagnostics[-1:] or [agent.get("error") or agent.get("last_error") or last.get("error") or voice.get("error")]
         if details and details[0]:
             text += "\n最近狀態：" + str(details[0])[-1500:]
@@ -1598,7 +1730,7 @@ class PetApplication:
         self._refresh_status_panel()
 
     def _behavior_options_changed(self):
-        self._manual_interaction("behavior_settings")
+        self._presentation_interaction("behavior_settings")
         self.behavior.options(roaming=self.roaming_var.get(), mode=self.proactive_var.get(),
                               screen_enabled=self.screen_enabled_var.get(), screen_frequency=self.screen_frequency_var.get(),
                               screen_scope=self.screen_scope_var.get(), idle_actions=self.idle_actions_var.get(),
@@ -1607,15 +1739,18 @@ class PetApplication:
         self._refresh_status_panel()
 
     def _skin_changed(self):
-        self._manual_interaction("skin")
+        self._presentation_interaction("skin")
+        self._carry.reset()
+        self._carry_sample = None
         x, y, _, _ = window_rect(self.native.hwnd)
         foot_x, foot_y = x + 12 + self.atlas.anchor[0], y + 10 + self.atlas.anchor[1]
         self.atlas = SpriteAtlas(self.root, self._skin_paths[self.skin_var.get()], self.size_var.get())
         self.width, self.height = self.atlas.width + 24, self.atlas.height + 20
         self.canvas.configure(width=self.width, height=self.height)
-        self.canvas.itemconfigure(self.sprite_item, image=self.atlas.images["idle"])
+        self._animation = self._posture_animation("idle")
+        self.canvas.itemconfigure(self.sprite_item, image=self.atlas.images[self.atlas.frame(self._animation, 0)])
         self._last_frame = None
-        self._animation = "idle"
+        self._animation_start = time.monotonic()
         self.root.update_idletasks()
         self._move(round(foot_x - 12 - self.atlas.anchor[0]), round(foot_y - 10 - self.atlas.anchor[1]))
         self.behavior.reset_geometry(self.atlas)
@@ -1624,7 +1759,9 @@ class PetApplication:
         self._save()
 
     def _size_changed(self):
-        self._manual_interaction("size")
+        self._presentation_interaction("size")
+        self._carry.reset()
+        self._carry_sample = None
         x, y, _, bottom = window_rect(self.native.hwnd)
         old_anchor = self.atlas.anchor
         self.atlas.set_scale(self.size_var.get())
@@ -1647,15 +1784,20 @@ class PetApplication:
                 "agent_turn_id": self._reply.get("turn_id") if self._reply else None,
                 "voice_retry_available": self._last_reply is not None,
                 "skin": self.skin_var.get(), "sprite_manifest": str(self.atlas.path),
-                "roaming_enabled": self.roaming_var.get(), "proactive_mode": self.proactive_var.get(),
+                "roaming_enabled": self.roaming_var.get(), "seated": self.seated_var.get(),
+                "seat_button_label": self.seat_button_var.get(), "proactive_mode": self.proactive_var.get(),
                 "screen_observation_enabled": self.screen_enabled_var.get(), "screen_scope": self.screen_scope_var.get(),
                 "screen_frequency": self.screen_frequency_var.get(), "idle_actions_enabled": self.idle_actions_var.get(),
                 "return_after_idle_seconds": self.return_idle_var.get(), "animation": self._animation,
                 "monitor_layout": self.behavior.monitors,
                 "motion_state": self._last_motion_state.value if self._last_motion_state else None,
                 "proactive_operation": self._turn_is_proactive,
+                "proactive_status": self.behavior.proactive.status(),
                 "touch_operation": self._turn_is_touch,
                 "touch_gesture_active": self._touch_gesture is not None,
+                "carry_phase": self._carry_sample.phase if self._carry_sample else None,
+                "carry_frame": self._carry_sample.frame if self._carry_sample else None,
+                "carry_angle_degrees": round(self._carry_sample.angle_degrees, 2) if self._carry_sample else 0,
                 "bubble_visible": bool(self.bubble and self.bubble.winfo_exists()),
                 "playing": self.player.playing, "health": self.health, "diagnostics": self.diagnostics[-3:]}
 

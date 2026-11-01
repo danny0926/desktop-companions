@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from desktop_pet.agent.actions import parse_user_action
 from desktop_pet.app import PetApplication
+from desktop_pet.shell.carry import CarryMotion
 from desktop_pet.shell.interaction import HeadpatGesture, head_hit
 
 
@@ -46,15 +47,17 @@ class FakeController:
 def fake_app():
     app = PetApplication.__new__(PetApplication)
     app.config, app.closing, app.smoke = {}, False, False
+    app.preferences = {}
     app.root = SimpleNamespace(state=lambda: "normal")
     app.native = SimpleNamespace(hwnd=1)
-    app.atlas = SimpleNamespace(width=192, height=224, manifest={}, images={"idle": "idle", "headpat": "headpat"},
+    app.atlas = SimpleNamespace(width=192, height=224, scale=2, manifest={}, images={"idle": "idle", "headpat": "headpat"},
                                 resolve_animation=lambda value: value, frame=lambda value, elapsed: "headpat" if value == "headpat" else "idle")
     app.frames, app.moves, app.logs = [], [], []
     app.canvas = SimpleNamespace(itemconfigure=lambda item, **options: app.frames.append(options["image"]),
                                  coords=lambda *args: None)
     app.sprite_item = 1
     app.behavior = SimpleNamespace(latest_snapshot=None, note_manual_interaction=lambda now: None,
+                                  note_presentation_interaction=lambda now: None,
                                   planner=SimpleNamespace(reset=lambda: None))
     app.controller = FakeController()
     app.player = SimpleNamespace(playing=False, item=None, stop=lambda: None)
@@ -62,6 +65,7 @@ def fake_app():
     app.topmost_var, app.subtitle_var = Value(True), Value(True)
     app.size_var, app.skin_var = Value("small"), Value("pixel_v2")
     app.roaming_var, app.proactive_var = Value(True), Value("occasional")
+    app.seated_var, app.seat_button_var = Value(False), Value("坐在原地")
     app.screen_enabled_var, app.screen_frequency_var = Value(True), Value("normal")
     app.screen_scope_var, app.idle_actions_var, app.return_idle_var = Value("active_window"), Value(True), Value(180)
     app.chat, app.transcript, app.input_box, app.bubble = None, None, None, None
@@ -76,9 +80,12 @@ def fake_app():
     app._motion, app._last_frame = "idle", None
     app._touch_gesture, app._drag = None, None
     app._dragged = False
+    app._drag_press_at = 0.0
+    app._carry, app._carry_grip, app._carry_sample = CarryMotion(), (0.0, 0.0), None
     app._touch_animation, app._touch_reaction_until = "headpat", 0
     app._last_touch_reply_at = app._last_manual_at = app._last_typing_at = float("-inf")
     app._turn_is_touch = app._turn_is_proactive = app._chat_input_focused = False
+    app._active_proactive_decision = None
     app._prewarm_pending = app._synthesis_pending = False
     app._prewarm_id = app.turn_id = app._reply = None
     app._turn_complete, app._voice_failed = True, False
@@ -184,6 +191,7 @@ class InteractionContractTests(unittest.TestCase):
 
     def test_draft_save_keeps_unicode_and_never_sends_it(self):
         app = fake_app()
+        app.seated_var.set(True)
         draft = "還沒寫完的話\n（想輕輕握手）" + "待" * 21000
         app.input_box = SimpleNamespace(winfo_exists=lambda: True, get=lambda *args: draft)
         with TemporaryDirectory() as directory:
@@ -193,8 +201,53 @@ class InteractionContractTests(unittest.TestCase):
             value = json.loads(app.state_path.read_text(encoding="utf-8"))
         self.assertEqual(value["chat_draft"], draft)
         self.assertEqual(value["skin"], "pixel_v2")
+        self.assertTrue(value["seated"])
         self.assertEqual(app.controller.starts, [])
         self.assertEqual(app._touch_reply_block_reason(100), "chat_input_active")
+
+    def test_empty_focused_chat_does_not_block_but_real_draft_does(self):
+        app = fake_app()
+        app._chat_input_focused = True
+        app.chat = SimpleNamespace(winfo_exists=lambda: True, state=lambda: "normal")
+        busy = app._busy_state(100)
+        self.assertTrue(busy.chat_active)
+        self.assertFalse(busy.input_active)
+        self.assertIsNone(app._touch_reply_block_reason(100))
+        app._draft_text = "還沒寫完"
+        self.assertTrue(app._busy_state(100).input_active)
+        self.assertEqual(app._touch_reply_block_reason(100), "chat_input_active")
+
+    def test_seated_expressions_and_speech_keep_the_seated_body(self):
+        app = fake_app()
+        app.seated_var.set(True)
+        app.atlas.manifest = {"animations": {"idle": {}, "sit": {}, "sit_swing": {}},
+                              "frames": {"sit_talk_small": {}, "sit_talk_open": {}}}
+        app.atlas.frame = lambda animation, elapsed: animation
+        app.player.mouth = lambda: "talk_open"
+        self.assertEqual(app._posture_animation("happy"), "sit")
+        self.assertEqual(app._posture_animation("headpat"), "sit")
+        self.assertEqual(app._posture_animation("crossed_arms"), "sit")
+        self.assertEqual(app._posture_animation("sit_down"), "sit")
+        self.assertEqual(app._speaking_frame(100), "sit_talk_open")
+        app.atlas.manifest["frames"] = {}
+        self.assertEqual(app._speaking_frame(100), "sit")
+
+    def test_seat_controls_keep_labels_synchronized_without_changing_roaming(self):
+        app = fake_app()
+        labels, postures = [], []
+        app.menu = SimpleNamespace(entryconfigure=lambda index, **options: labels.append(options["label"]))
+        app._seat_menu_index = 1
+        app.behavior.set_seated = postures.append
+        app._refresh_status_panel = lambda: None
+        app.toggle_seated()
+        self.assertTrue(app.seated_var.get())
+        self.assertTrue(app.roaming_var.get())
+        self.assertEqual(app.seat_button_var.get(), "起來走走")
+        app.toggle_seated()
+        self.assertFalse(app.seated_var.get())
+        self.assertEqual(app.seat_button_var.get(), "坐在原地")
+        self.assertEqual(labels, ["起來走走", "坐在原地"])
+        self.assertEqual(postures, [True, False])
 
     def test_release_expiry_preserves_first_walking_animation(self):
         app = fake_app()

@@ -61,11 +61,11 @@ class CompanionContracts(unittest.TestCase):
         planner.note_manual_interaction(12)
         self.assertFalse(planner.should_deliver(result, now=13))
 
-    def test_screen_blocks_own_chat_locked_fullscreen_and_busy_states(self):
+    def test_screen_blocks_own_foreground_locked_fullscreen_and_busy_states(self):
         scenarios = [({"foreground_owned": True}, BusyState()),
                      ({"desktop_available": False}, BusyState()),
                      ({"foreground_fullscreen": True}, BusyState()),
-                     ({}, BusyState(chat_active=True)), ({}, BusyState(typing=True)),
+                     ({}, BusyState(input_active=True)), ({}, BusyState(typing=True)),
                      ({}, BusyState(dragging=True)), ({}, BusyState(speaking=True)),
                      ({}, BusyState(thinking=True)), ({}, BusyState(hidden=True))]
         for flags, busy in scenarios:
@@ -77,6 +77,74 @@ class CompanionContracts(unittest.TestCase):
             planner = ProactiveController(cfg)
             planner.observe(sample(0))
             self.assertIsNone(planner.observe(sample(10)))
+
+    def test_visible_empty_chat_allows_screen_and_nonvisual_companionship(self):
+        planner = ProactiveController(config(), rng=random.Random(1))
+        planner.observe(sample(0), busy=BusyState(chat_active=True))
+        result = planner.observe(sample(10), busy=BusyState(chat_active=True))
+        self.assertEqual(result.event.kind, ProactiveEventKind.SCREEN_OBSERVATION)
+        self.assertTrue(planner.should_deliver(result, now=11, busy=BusyState(chat_active=True)))
+        planner = ProactiveController(config(screen_enabled=False, companion_min_seconds=10, companion_max_seconds=10))
+        planner.observe(sample(0), busy=BusyState(chat_active=True))
+        result = planner.observe(sample(10, foreground_owned=True), busy=BusyState(chat_active=True))
+        self.assertEqual(result.event.kind, ProactiveEventKind.COMPANION_TOPIC)
+        self.assertEqual((result.event.idle_seconds, result.event.active_seconds), (0, 0))
+        self.assertTrue(planner.should_deliver(result, now=11, busy=BusyState(chat_active=True)))
+
+    def test_companion_topic_yields_to_real_draft_manual_input_and_desktop_guards(self):
+        for flags, busy in (({}, BusyState(input_active=True)), ({}, BusyState(typing=True)),
+                            ({}, BusyState(speaking=True)), ({}, BusyState(dragging=True)),
+                            ({"foreground_fullscreen": True}, BusyState()),
+                            ({"desktop_available": False}, BusyState())):
+            with self.subTest(flags=flags, busy=busy):
+                planner = ProactiveController(config(screen_enabled=False, companion_min_seconds=10, companion_max_seconds=10))
+                planner.observe(sample(0))
+                self.assertIsNone(planner.observe(sample(10, **flags), busy=busy))
+                self.assertIsNotNone(planner.status(10)["suppression_reason"])
+        planner = ProactiveController(config(screen_enabled=False, companion_min_seconds=10, companion_max_seconds=10))
+        planner.observe(sample(0))
+        decision = planner.observe(sample(10))
+        planner.note_manual_interaction(11)
+        self.assertFalse(planner.should_deliver(decision, now=12))
+        self.assertIsNone(planner.observe(sample(12)))
+        self.assertEqual(planner.status(12)["suppression_reason"], "manual_cooldown")
+
+    def test_seated_mode_holds_anchor_through_speech_touch_drag_and_resume(self):
+        atlas = SimpleNamespace(width=192, height=224, anchor=(96, 216))
+        bridge = BehaviorBridge(atlas, ROOT / "config/desktop_pet_behavior.json", lambda event: None)
+        bridge.set_seated(True, now=0)
+        options = dict(position=(300, 400), room=(0, 0, 1920, 1040), mouse=None,
+                       animations={"idle", "sit", "sit_down", "sit_swing", "carried", "land", "stand_up"})
+        for now, busy in ((1, BusyState()), (2, BusyState(speaking=True)),
+                          (3, BusyState(interacting=True)), (4, BusyState(thinking=True))):
+            result = bridge.step(now, busy=busy, **options)
+            self.assertEqual(result.state, MotionState.SEATED)
+            self.assertEqual(result.animation, "sit")
+            self.assertEqual(result.anchor_position, (408, 626))
+            self.assertFalse(result.moved)
+        result = bridge.step(5, busy=BusyState(dragging=True), **options)
+        self.assertEqual(result.animation, "carried")
+        options["position"] = (700, 200)
+        result = bridge.step(6, busy=BusyState(), **options)
+        self.assertEqual(result.animation, "sit_down")
+        result = bridge.step(7, busy=BusyState(), **options)
+        self.assertTrue(bridge.seated)
+        self.assertEqual(result.state, MotionState.SEATED)
+        self.assertEqual(result.position, (700, 200))
+        bridge.options(roaming=False, mode="occasional")
+        self.assertTrue(bridge.seated)
+        bridge.set_seated(False, now=8)
+        result = bridge.step(9, busy=BusyState(), **options)
+        self.assertEqual(result.reason, "roaming_disabled")
+
+    def test_old_skin_seated_fallback_never_walks(self):
+        atlas = SimpleNamespace(width=192, height=224, anchor=(96, 216))
+        bridge = BehaviorBridge(atlas, ROOT / "config/desktop_pet_behavior.json", lambda event: None, seated=True)
+        result = bridge.step(1, position=(300, 400), room=(0, 0, 1920, 1040), mouse=None,
+                             busy=BusyState(speaking=True), animations={"idle"})
+        self.assertEqual(result.animation, "idle")
+        self.assertEqual(result.state, MotionState.SEATED)
+        self.assertFalse(result.moved)
 
     def test_screen_shares_global_cooldown_and_hourly_budget(self):
         planner = ProactiveController(config(screen_min_seconds=1, screen_max_seconds=1,

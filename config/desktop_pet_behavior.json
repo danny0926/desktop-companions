@@ -48,6 +48,9 @@
     "screen_max_seconds": 720,
     "screen_event_ttl_seconds": 60,
     "screen_max_idle_seconds": 60,
-    "screen_scope": "active_window"
+    "screen_scope": "active_window",
+    "companion_min_seconds": 360,
+    "companion_max_seconds": 660,
+    "companion_max_idle_seconds": 300
   }
 }
