@@ -655,10 +655,10 @@ class PetApplication:
         ttk.Button(shortcuts, text="自訂動作", width=1, style="Action.Pet.TButton", command=self._custom_action).grid(row=0, column=3, sticky="ew")
         ttk.Checkbutton(footer, text="中文字幕", variable=self.subtitle_var, style="Pet.TCheckbutton", command=self._subtitles_changed).grid(row=4, column=0, sticky="w", pady=(8, 0))
         retry = ttk.Button(footer, text="重試語音", width=1, command=self.retry_voice, style="Pet.TButton")
-        retry.grid(row=4, column=1, padx=(4, 4), pady=(8, 0))
+        retry.grid(row=4, column=1, sticky="ew", padx=(4, 4), pady=(8, 0))
         self._retry_buttons.append(retry)
-        ttk.Button(footer, text="停止", width=1, command=self.stop, style="Pet.TButton").grid(row=4, column=2, padx=(0, 4), pady=(8, 0))
-        ttk.Button(footer, text="傳送", width=1, command=self.send_input, style="Accent.Pet.TButton").grid(row=4, column=3, pady=(8, 0))
+        ttk.Button(footer, text="停止", width=1, command=self.stop, style="Pet.TButton").grid(row=4, column=2, sticky="ew", padx=(0, 4), pady=(8, 0))
+        ttk.Button(footer, text="傳送", width=1, command=self.send_input, style="Accent.Pet.TButton").grid(row=4, column=3, sticky="ew", pady=(8, 0))
         ttk.Label(footer, text="Markdown · Enter 傳送，Shift＋Enter 換行\n每則最多4張圖片，單張12MB內。",
                   wraplength=460, style="Muted.Pet.TLabel").grid(row=5, column=0, columnspan=4, sticky="w", pady=(7, 0))
         self._update_retry_actions()
