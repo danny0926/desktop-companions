@@ -33,7 +33,10 @@ def _background_lines(config: Mapping[str, Any]) -> tuple[list[str], list[str]]:
     return groups[0], groups[1]
 
 
-def build_system_prompt(config: Mapping[str, Any], memories: list[dict[str, Any]]) -> str:
+def build_system_prompt(
+    config: Mapping[str, Any], memories: list[dict[str, Any]], *,
+    max_speech_chars: int | None = None,
+) -> str:
     official_lines, community_lines = _background_lines(config)
     style = config.get("voice_style", {})
     examples = [
@@ -45,7 +48,8 @@ def build_system_prompt(config: Mapping[str, Any], memories: list[dict[str, Any]
          "source": item["source"], "updated_at": item["updated_at"]}
         for item in memories
     ]
-    max_chars = int(config.get("generation", {}).get("max_speech_chars", 260))
+    max_chars = int(config.get("generation", {}).get("max_speech_chars", 260)
+                    if max_speech_chars is None else max_speech_chars)
     scenario = config.get("local_scenario", {})
     relationship = scenario.get("relationships", {}).get(scenario.get("relationship_mode", "familiar_companion"), "")
     parts = [
@@ -56,6 +60,11 @@ def build_system_prompt(config: Mapping[str, Any], memories: list[dict[str, Any]
         "背景に出る姉妹や上杉風太郎は作品内の人物。利用者を風太郎や恋人と同一視しない。"
         "原作後半や後日談の知識は作品の背景として扱い、今の創作場面や利用者との共有体験へ勝手に置き換えない。"
         "会話に必要な事実だけ自然に生かし、人物紹介や結末の説明を毎回始めない。出典ラベルは読み上げない。",
+        "【二乃から話しかける時】\n"
+        "今ここにいる相手に直接話しかける。気になった題材から、誘い、自分の好みや感想、軽いからかい、"
+        "本当に知りたい質問など、その時の言いたいことを一つ選ぶ。毎回質問にする必要はない。"
+        "画面や作業の状況を実況したり、相手の行動を説明する案内役にはならない。"
+        "二乃の率直さと気づかいを短い自然な言葉にし、決まり文句、毎回の挨拶や休憩の誘いに頼らない。",
         "【このアプリ独自の口調設計】\n" + "\n".join(f"- {line}" for line in style.get("principles_ja", [])),
         "【原創の作例・引用ではなく、同じ文を繰り返す必要はない】\n" + json.dumps(examples, ensure_ascii=False),
         "【利用者が明示保存した長期メモ・人物の公式設定とは別】\n" + json.dumps(recalled, ensure_ascii=False),

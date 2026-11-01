@@ -11,6 +11,8 @@ import tkinter as tk
 import zlib
 from fractions import Fraction
 
+from .gaze import apply_gaze_rgba, gaze_offset, infer_gaze_geometry
+
 
 EXPRESSION_ANIMATION = {
     "neutral": "idle", "smile": "happy", "annoyed": "annoyed", "shy": "shy",
@@ -134,6 +136,7 @@ class SpriteAtlas:
         self.originals = {name: tk.PhotoImage(master=master, data=base64.b64encode(color_key_png(path.parent / info["file"])))
                           for name, info in self.manifest["frames"].items()}
         self._carry_sources = {}
+        self._gaze_geometry = {}
         self.set_scale(scale)
 
     def set_scale(self, scale: str):
@@ -149,6 +152,42 @@ class SpriteAtlas:
         self.anchor = (round(anchor["x"] * float(self.scale)), round(anchor["y"] * float(self.scale)))
         self._carry_cache = OrderedDict()
         self._carry_grip = None
+        self._gaze_cache = OrderedDict()
+
+    def gaze_geometry(self, frame: str):
+        """Return a frame's verified eye masks, or a safe legacy fallback."""
+        if self.manifest.get("id") != "nino-pixel-v3":
+            return None
+        frame = self.resolve_frame(frame)
+        if frame not in self._gaze_geometry:
+            if frame not in self._carry_sources:
+                self._carry_sources[frame] = _read_rgba(self.path.parent / self.manifest["frames"][frame]["file"])
+            self._gaze_geometry[frame] = infer_gaze_geometry(*self._carry_sources[frame])
+        return self._gaze_geometry[frame]
+
+    def gaze_image(self, frame: str, offset):
+        """Return a render key and a subtle eye-only display variant.
+
+        The 32-entry LRU contains only requested, scaled variants. Original frame
+        names stay separate from this key, so a still pose can follow the mouse.
+        """
+        frame = self.resolve_frame(frame)
+        offset = gaze_offset(offset)
+        geometry = self.gaze_geometry(frame)
+        if geometry is None or offset == (0, 0):
+            return frame, self.images[frame]
+        key = ("gaze", frame, *offset)
+        if key in self._gaze_cache:
+            self._gaze_cache.move_to_end(key)
+            return key, self._gaze_cache[key]
+        width, height, pixels = self._carry_sources[frame]
+        transformed = apply_gaze_rgba(width, height, pixels, geometry, offset)
+        original = tk.PhotoImage(master=self.master, data=base64.b64encode(_rgba_png(width, height, transformed)))
+        image = original.zoom(self.scale.numerator).subsample(self.scale.denominator)
+        self._gaze_cache[key] = image
+        while len(self._gaze_cache) > 32:
+            self._gaze_cache.popitem(last=False)
+        return key, image
 
     def carry_image(self, frame: str, angle: float, grip: tuple[float, float]):
         """Return ``(render_key, image)`` for a fixed-grip physical carry sample.

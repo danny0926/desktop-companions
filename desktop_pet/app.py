@@ -16,6 +16,7 @@ from .agent.actions import UserAction, format_user_action, parse_user_action
 from .shell.controller import ConversationController
 from .shell.behavior import BehaviorBridge
 from .shell.carry import CarryMotion
+from .shell.gaze import GazeTracker
 from .shell.interaction import HeadpatGesture, head_hit
 from desktop_pet.behavior import BusyState, MotionState, ObservationSource, ProactiveEventKind
 from .shell.playback import WavePlayer
@@ -115,6 +116,10 @@ class PetApplication:
         self._last_touch_reply_at = float("-inf")
         self._turn_is_touch = False
         self._last_frame = None
+        self._last_render_key = None
+        self._gaze = GazeTracker()
+        self._gaze_failed_frames = set()
+        self._gaze_failure_logged = False
         self._turn_is_proactive = False
         self._active_proactive_decision = None
         self._last_manual_at = float("-inf")
@@ -330,6 +335,7 @@ class PetApplication:
         self.canvas.itemconfigure(self.sprite_item, image=self.atlas.images[frame])
         self.canvas.coords(self.sprite_item, 12, 10)
         self._last_frame = frame
+        self._last_render_key = None
 
     def _drag_start(self, event):
         self._carry.reset()
@@ -1130,7 +1136,8 @@ class PetApplication:
         motion_busy = replace(busy, interacting=True) if now < self._reply_action_until else busy
         if self._drag is not None and not self._dragged:
             motion_busy = replace(motion_busy, interacting=True)
-        motion = self.behavior.step(now, position=(x, y), room=room, mouse=cursor_position(), busy=motion_busy,
+        motion = self.behavior.step(now, position=(x, y), room=room,
+                                    mouse=getattr(self, "_tick_cursor", None) or cursor_position(), busy=motion_busy,
                                     animations=self.atlas.available_behavior_animations(),
                                     allow_idle_actions=now >= self._expression_until)
         if motion.moved:
@@ -1246,8 +1253,12 @@ class PetApplication:
         if kind == "proactive_discarded":
             self._log("proactive_discarded", turn_id=event.get("turn_id"), reason=event.get("reason"))
             if event.get("turn_id") == self.turn_id and self._turn_is_proactive:
-                self.player.stop()
-                self._audio_queue.clear()
+                discarded_turn_id = self.turn_id
+                if self.player.item is not None and self.player.item.get("turn_id") == discarded_turn_id:
+                    self.player.stop()
+                self._audio_queue = type(self._audio_queue)(
+                    item for item in self._audio_queue if item.get("turn_id") != discarded_turn_id
+                )
                 self._synthesis_pending = False
                 self.controller.record_delivery(self.turn_id, "".join(self._heard), "interrupted" if self._heard else "discarded")
                 self.turn_id = None
@@ -1257,6 +1268,7 @@ class PetApplication:
                 self._active_proactive_decision = None
                 self._hide_bubble()
                 self._set_animation("idle")
+                self.status.set("二乃在這裡，想聊什麼都可以。")
             return
         if kind == "native":
             action = event["action"]
@@ -1432,6 +1444,30 @@ class PetApplication:
         if self.config.get("exit_when_done") and self.turn_id:
             self.root.after(350, self.close)
 
+    def _gaze_sprite(self, frame: str, now: float, dx: int, dy: int):
+        """Keep optional eye rendering isolated from the event/audio loop."""
+        base = self.atlas.images[frame]
+        if not getattr(self.atlas, "gaze_geometry", None):
+            return frame, base
+        if frame in self._gaze_failed_frames:
+            return frame, base
+        try:
+            geometry = self.atlas.gaze_geometry(frame)
+            if geometry is None:
+                return frame, base
+            left, top, _, _ = window_rect(self.native.hwnd)
+            offset = self._gaze.sample(self._tick_cursor, (left + 12 + dx, top + 10 + dy),
+                                       self.atlas.scale, geometry.center, now)
+            return self.atlas.gaze_image(frame, offset)
+        except Exception as exc:
+            # A malformed optional eye mask or a failed Tk variant must never
+            # prevent the next tick from draining events or playing speech.
+            self._gaze_failed_frames.add(frame)
+            if not self._gaze_failure_logged:
+                self._gaze_failure_logged = True
+                self._log("gaze_fallback", frame=frame, error=str(exc))
+            return frame, base
+
     def _tick(self):
         if self.closing:
             return
@@ -1440,6 +1476,7 @@ class PetApplication:
                 self._handle_event(self.events.get_nowait())
             except queue.Empty:
                 break
+        self._tick_cursor = cursor_position()
         self._behavior_tick(time.monotonic())
         if self.player.item is not None and not self.player.playing:
             item = self.player.item
@@ -1484,17 +1521,20 @@ class PetApplication:
                     self._set_animation("idle")
         self._carry_sample = self._carry.sample(now)
         sprite_image = None
+        render_key = None
         if self._carry_sample is not None:
             carried = self._carry_sample
             carried_frame = carried.frame
             if carried.phase == "landing" and self.seated_var.get():
                 posture = self._posture_animation("sit_down")
                 carried_frame = self.atlas.frame(posture, carried.progress * self.atlas.animation_duration(posture) * 1000)
-            frame, sprite_image = self.atlas.carry_image(carried_frame, carried.angle_degrees, self._carry_grip)
+            render_key, sprite_image = self.atlas.carry_image(carried_frame, carried.angle_degrees, self._carry_grip)
+            frame = render_key[1]
         elif self._drag is not None and self._dragged:
             # An aborted/reconfigured physics state must never revive the old
             # elapsed-time pose loop while the pointer is still held.
-            frame, sprite_image = self.atlas.carry_image("carried_4", 0, self._carry_grip)
+            render_key, sprite_image = self.atlas.carry_image("carried_4", 0, self._carry_grip)
+            frame = render_key[1]
         elif self._touch_visual_active(now):
             frame = self.atlas.frame(self._posture_animation(self._touch_animation), (now - self._animation_start) * 1000)
         elif self.player.playing:
@@ -1504,9 +1544,6 @@ class PetApplication:
                 self._set_animation("idle")
                 self._expression_until = 0
             frame = self.atlas.frame(self._animation, (now - self._animation_start) * 1000)
-        if frame != self._last_frame:
-            self.canvas.itemconfigure(self.sprite_item, image=sprite_image if sprite_image is not None else self.atlas.images[frame])
-            self._last_frame = frame
         elapsed = now - self._motion_start
         dx = dy = 0
         if self._carry_sample is not None:
@@ -1520,6 +1557,12 @@ class PetApplication:
                 dy = -round(abs(wave) * 7)
             elif self._motion == "shake":
                 dx = round(wave * 4)
+        if sprite_image is None:
+            render_key, sprite_image = self._gaze_sprite(frame, now, dx, dy)
+        if frame != self._last_frame or render_key != getattr(self, "_last_render_key", None):
+            self.canvas.itemconfigure(self.sprite_item, image=sprite_image)
+            self._last_frame = frame
+            self._last_render_key = render_key
         self.canvas.coords(self.sprite_item, 12 + dx, 10 + dy)
         self.root.after(35, self._tick)
 
@@ -1750,6 +1793,10 @@ class PetApplication:
         self._animation = self._posture_animation("idle")
         self.canvas.itemconfigure(self.sprite_item, image=self.atlas.images[self.atlas.frame(self._animation, 0)])
         self._last_frame = None
+        self._last_render_key = None
+        self._gaze.reset()
+        self._gaze_failed_frames.clear()
+        self._gaze_failure_logged = False
         self._animation_start = time.monotonic()
         self.root.update_idletasks()
         self._move(round(foot_x - 12 - self.atlas.anchor[0]), round(foot_y - 10 - self.atlas.anchor[1]))
@@ -1768,12 +1815,18 @@ class PetApplication:
         self.width, self.height = self.atlas.width + 24, self.atlas.height + 20
         self.canvas.configure(width=self.width, height=self.height)
         self._last_frame = None
+        self._last_render_key = None
+        self._gaze.reset()
+        self._gaze_failed_frames.clear()
+        self._gaze_failure_logged = False
         self.root.update_idletasks()
         self._move(x + old_anchor[0] - self.atlas.anchor[0], y + old_anchor[1] - self.atlas.anchor[1])
         self.behavior.reset_geometry(self.atlas)
         self._save()
 
     def snapshot(self) -> dict:
+        render_key = getattr(self, "_last_render_key", None)
+        gaze_active = isinstance(render_key, tuple) and render_key[0] == "gaze"
         return {"schema": "desktop-pet-shell-v1", "pid": __import__("os").getpid(),
                 "pet_rect": window_rect(self.native.hwnd), "frame_size": [self.atlas.width, self.atlas.height],
                 "transparent_color": str(self.root.attributes("-transparentcolor")),
@@ -1798,6 +1851,8 @@ class PetApplication:
                 "carry_phase": self._carry_sample.phase if self._carry_sample else None,
                 "carry_frame": self._carry_sample.frame if self._carry_sample else None,
                 "carry_angle_degrees": round(self._carry_sample.angle_degrees, 2) if self._carry_sample else 0,
+                "sprite_frame": self._last_frame, "gaze_active": gaze_active,
+                "gaze_offset": list(render_key[2:]) if gaze_active else [0, 0],
                 "bubble_visible": bool(self.bubble and self.bubble.winfo_exists()),
                 "playing": self.player.playing, "health": self.health, "diagnostics": self.diagnostics[-3:]}
 
